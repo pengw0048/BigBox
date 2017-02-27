@@ -24,3 +24,5 @@ obj/
 .vs/
 
 media/*
+
+.idea/workspace.xml
