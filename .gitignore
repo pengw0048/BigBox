@@ -1,0 +1,26 @@
+*.log
+*.pot
+*.pyc
+local_settings.py
+
+# Editor backup files
+*~
+*#
+*.swp
+
+# Mac OS data store file
+.DS_Store
+
+__pycache__
+
+
+# PTVS files
+bin/
+obj/
+*.config
+*.pyproj
+*.sln
+*.suo
+.vs/
+
+media/*
