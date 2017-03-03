@@ -2,9 +2,9 @@ from django import forms
 
 namepattern = r"^\w+$"
 textpattern = r"^[a-zA-Z\.\- ]+$"
-textwidget = forms.TextInput(attrs={"class":"form-control"})
-passwidget = forms.PasswordInput(attrs={"class":"form-control"})
-emailwidget = forms.EmailInput(attrs={"class":"form-control"})
+textwidget = forms.TextInput(attrs={"class": "form-control"})
+passwidget = forms.PasswordInput(attrs={"class": "form-control"})
+emailwidget = forms.EmailInput(attrs={"class": "form-control"})
 
 
 class LoginForm(forms.Form):

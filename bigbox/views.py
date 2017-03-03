@@ -67,7 +67,8 @@ your email address and complete the registration of your account:
 
 @login_required
 def home(request):
-    return HttpResponse("hi")
+    user = request.user
+    return render(request, 'home.html', {'user': user})
 
 
 @transaction.atomic

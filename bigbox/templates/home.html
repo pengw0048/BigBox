@@ -1,0 +1,14 @@
+{% extends 'barebone.html' %}
+{% block title %}Home - {{ user.username }}{% endblock %}
+{% block body %}
+  {% include 'navbar-in.html' with active_home='true' %}
+  <div class="container">
+    <div class="mainframe">
+
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  {% load static %}
+{% endblock %}
