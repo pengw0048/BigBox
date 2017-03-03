@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class CloudInterface(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
     display_name = models.CharField(max_length=30)
-    icon = models.ImageField()
+    icon = models.CharField(max_length=30)
     class_name = models.CharField(max_length=30)
 
 
