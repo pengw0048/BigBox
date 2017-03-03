@@ -1,0 +1,25 @@
+{% extends 'barebone.html' %}
+{% block title %}Register{% endblock %}
+{% block body %}
+  {% include 'navbar-out.html' with active_register='true' %}
+  <div class="container">
+    <div class="mainframe">
+      <div class="credform">
+        <h1>Sign Up</h1>
+        <form method="POST">
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% include 'fieldmsg.html' with err=field.errors %}
+            </div>
+          {% endfor %}
+          {% include 'popupmsg.html' with formerr=form.non_field_errors %}
+          <button type="submit" class="btn btn-primary btn-lg">Create my account!</button>
+          <a class="btn btn-default btn-lg" href="{% url 'login' %}">Already a user?</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

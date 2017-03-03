@@ -1,0 +1,6 @@
+[Email]
+Host: smtp.andrew.cmu.edu
+Port: 465
+User: AndrewID
+Password: YourPassword
+Address: EmailAddress
