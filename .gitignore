@@ -25,5 +25,7 @@ obj/
 
 media/*
 
-.idea/workspace.xml
+.idea
+*.iml
+
 *.cnf
