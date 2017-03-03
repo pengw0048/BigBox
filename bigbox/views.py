@@ -10,6 +10,8 @@ from django.db import transaction
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
+from .models import *
+import importlib
 
 
 def login(request):
@@ -81,3 +83,10 @@ def confirm(request, username, token):
     auth_login(request, user)
     messages.success(request, 'Your account has been created. Welcome to Big Box!')
     return HttpResponseRedirect(reverse('home'))
+
+
+@login_required
+def add_storage_account(request, cloud):
+    cloud = get_object_or_404(CloudInterface, name=cloud)
+    fun = getattr(importlib.import_module('bigbox.'+cloud.class_name), "add_storage_account")
+    return fun(request)
