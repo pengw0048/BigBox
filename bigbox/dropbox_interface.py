@@ -11,7 +11,7 @@ def get_dropbox_auth_flow(web_app_session):
 
 
 def add_storage_account(request, next_url, cloud):
-    if request.GET.get('state', None):
+    if 'state' in request.GET:
         try:
             oauth_result = get_dropbox_auth_flow(request.session).finish(request.GET)
         except:

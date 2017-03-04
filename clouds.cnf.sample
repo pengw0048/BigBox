@@ -4,6 +4,6 @@ Secret: xxx
 Redirect: http://localhost:8000/clouds/add/dropbox
 
 [Google Drive]
-Secrets: ../gdrive.cnf
-Scope: https://www.googleapis.com/auth/drive
+Secrets: gdrive.cnf
+Scope: https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email
 Redirect: http://localhost:8000/clouds/add/gdrive
