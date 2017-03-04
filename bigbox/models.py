@@ -12,6 +12,7 @@ class CloudInterface(models.Model):
 class StorageAccount(models.Model):
     user = models.ForeignKey(User, db_index=True)
     cloud = models.ForeignKey(CloudInterface)
+    identifier = models.TextField()
     status = models.IntegerField()
     refresh_token = models.TextField()
     refresh_token_expire = models.DateTimeField()

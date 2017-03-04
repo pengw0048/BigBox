@@ -89,4 +89,4 @@ def confirm(request, username, token):
 def add_storage_account(request, cloud):
     cloud = get_object_or_404(CloudInterface, name=cloud)
     fun = getattr(importlib.import_module('bigbox.'+cloud.class_name), "add_storage_account")
-    return fun(request)
+    return fun(request, reverse('home'), cloud)

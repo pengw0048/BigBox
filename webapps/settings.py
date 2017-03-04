@@ -132,3 +132,8 @@ EMAIL_HOST_USER = config.get('Email', 'User')
 EMAIL_HOST_PASSWORD = config.get('Email', 'Password')
 EMAIL_USE_SSL = True
 EMAIL_ADDRESS = config.get('Email', 'Address')
+
+config.read(os.path.join(BASE_DIR, 'clouds.cnf'))
+DROPBOX_APP_KEY = config.get('Dropbox', 'Key')
+DROPBOX_APP_SECRET = config.get('Dropbox', 'Secret')
+DROPBOX_REDIRECT_URL = config.get('Dropbox', 'Redirect')
