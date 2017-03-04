@@ -137,3 +137,7 @@ config.read(os.path.join(BASE_DIR, 'clouds.cnf'))
 DROPBOX_APP_KEY = config.get('Dropbox', 'Key')
 DROPBOX_APP_SECRET = config.get('Dropbox', 'Secret')
 DROPBOX_REDIRECT_URL = config.get('Dropbox', 'Redirect')
+
+GDRIVE_SECRETS_FILE = config.get('Google Drive', 'Secrets')
+GDRIVE_SCOPE = config.get('Google Drive', 'Scope')
+GDRIVE_REDIRECT_URL = config.get('Google Drive', 'Redirect')

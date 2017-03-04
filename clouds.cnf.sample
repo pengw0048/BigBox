@@ -1,0 +1,9 @@
+[Dropbox]
+Key: xxx
+Secret: xxx
+Redirect: http://localhost:8000/clouds/add/dropbox
+
+[Google Drive]
+Secrets: ../gdrive.cnf
+Scope: https://www.googleapis.com/auth/drive
+Redirect: http://localhost:8000/clouds/add/gdrive
