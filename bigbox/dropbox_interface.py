@@ -26,6 +26,7 @@ def add_storage_account(request, next_url, cloud):
             else:
                 sa = StorageAccount(user=request.user, cloud=cloud, identifier=oauth_result.account_id, status=1,
                                     access_token=oauth_result.access_token)
+                sa.save()
                 messages.success(request, 'A new Dropbox space is now linked to your account')
         return HttpResponseRedirect(next_url)
     else:

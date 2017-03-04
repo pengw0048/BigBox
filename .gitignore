@@ -29,3 +29,4 @@ media/*
 *.iml
 
 *.cnf
+db.sqlite3

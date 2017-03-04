@@ -1,0 +1,8 @@
+This repo does not contain db.sqlite3, so you will need to create one by yourself before running.
+> manage.py migrate
+When creating a new database, please fill in all supported cloud providers in StorageAccount. This is easiest done using the admin view (http://hostport/admin).
+Specifically, add:
+  Name: dropbox
+  Display name: Dropbox
+  Icon: dropbox.png
+  Class name: dropbox_interface
