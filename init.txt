@@ -6,3 +6,8 @@ Specifically, add:
   Display name: Dropbox
   Icon: dropbox.png
   Class name: dropbox_interface
+
+  Name: gdrive
+  Display name: Google Drive
+  Icon: gdrive.png
+  Class name: gdrive_interface
