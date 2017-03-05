@@ -13,4 +13,4 @@ Key: xxx
 Secret: xxx
 Redirect: http://localhost:8000/clouds/add/onedrive
 Base: https://api.onedrive.com/v1.0/
-Scope: wl.signin,wl.offline_access,files.readwrite.all
+Scope: wl.basic,wl.signin,wl.offline_access,files.readwrite.all

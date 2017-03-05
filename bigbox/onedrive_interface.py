@@ -3,8 +3,8 @@ from django.conf import settings
 from django.contrib import messages
 from .models import *
 import onedrivesdk
-from onedrivesdk.helpers import GetAuthCodeServer
 import asyncio
+import requests
 
 
 def add_storage_account(request, next_url, cloud):
@@ -24,6 +24,7 @@ def add_storage_account(request, next_url, cloud):
             access_token = client.auth_provider._session.access_token
             refresh_token = client.auth_provider._session.refresh_token
             expires_at = client.auth_provider._session._expires_at
+            id = get_user_info(access_token)['id']
         except:
             messages.error(request, 'An error occurred')
         else:
@@ -39,3 +40,9 @@ def add_storage_account(request, next_url, cloud):
     else:
         auth_url = client.auth_provider.get_auth_url(settings.ONEDRIVE_REDIRECT_URL)
         return HttpResponseRedirect(auth_url)
+
+
+def get_user_info(access_token):
+    r = requests.get("https://apis.live.net/v5.0/me", params={'access_token': access_token})
+    return r.json()
+
