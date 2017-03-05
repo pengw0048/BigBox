@@ -9,6 +9,9 @@ class CloudInterface(models.Model):
     icon = models.CharField(max_length=30)
     class_name = models.CharField(max_length=30)
 
+    def __str__(self):
+        return str(self.name) + ' ' + str(self.display_name) + ' ' + str(self.icon) + ' ' + str(self.class_name)
+
 
 class StorageAccount(models.Model):
     user = models.ForeignKey(User, db_index=True)
@@ -20,3 +23,6 @@ class StorageAccount(models.Model):
     access_token = models.TextField(blank=True)
     access_token_expire = models.DateTimeField(null=True, blank=True)
     additional_data = models.TextField(blank=True)
+
+    def __str__(self):
+        return str(self.user) + ' ' + str(self.cloud) + ' ' + str(self.identifier) + ' ' + str(self.status)
