@@ -7,3 +7,10 @@ Redirect: http://localhost:8000/clouds/add/dropbox
 Secrets: gdrive.cnf
 Scope: https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email
 Redirect: http://localhost:8000/clouds/add/gdrive
+
+[Onedrive]
+Key: xxx
+Secret: xxx
+Redirect: http://localhost:8000/clouds/add/onedrive
+Base: https://api.onedrive.com/v1.0/
+Scope: wl.signin,wl.offline_access,onedrive.readwrite.all

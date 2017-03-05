@@ -4,7 +4,6 @@ from django.contrib import messages
 from oauth2client import client
 from apiclient.discovery import build
 from .models import *
-import httplib2
 
 
 def add_storage_account(request, next_url, cloud):
