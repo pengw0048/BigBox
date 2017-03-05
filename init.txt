@@ -11,3 +11,8 @@ Specifically, add:
   Display name: Google Drive
   Icon: gdrive.png
   Class name: gdrive_interface
+
+  Name: onedrive
+  Display name: OneDrive
+  Icon: onedrive.png
+  Class name: onedrive_interface
