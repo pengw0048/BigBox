@@ -2,6 +2,7 @@ from django.http import *
 from django.conf import settings
 from django.contrib import messages
 from dropbox.oauth import *
+from dropbox.dropbox import *
 from .models import *
 
 
@@ -35,3 +36,7 @@ def add_storage_account(request, next_url, cloud):
 
 def show_storage_account(acc):
     return {}
+
+
+def get_client(acc: StorageAccount) -> Dropbox:
+    return Dropbox(acc.access_token)

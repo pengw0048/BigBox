@@ -4,6 +4,7 @@ from django.contrib import messages
 from oauth2client import client
 from apiclient.discovery import build
 from .models import *
+import httplib2
 
 
 def add_storage_account(request, next_url, cloud):
@@ -37,3 +38,10 @@ def add_storage_account(request, next_url, cloud):
 
 def show_storage_account(acc):
     return {}
+
+
+def get_client(acc: StorageAccount):
+    cred = client.OAuth2Credentials.from_json(acc.additional_data)
+    http = cred.authorize(httplib2.Http())
+    drive = build('drive', 'v3', http=http)
+    return drive
