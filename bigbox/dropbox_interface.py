@@ -21,8 +21,8 @@ def add_storage_account(request, next_url, cloud):
                 error_message += ' (%s): %s' % (request.GET['error'], request.GET['error_description'])
             messages.error(request, error_message)
         else:
-            if StorageAccount.objects.all().filter(user=request.user).filter(identifier=oauth_result.account_id).exists():
-                messages.warning(request, 'This Dropbox space is already linked to your account')
+            if StorageAccount.objects.all().filter(identifier=oauth_result.account_id).exists():
+                messages.warning(request, 'This Dropbox space is already linked')
             else:
                 sa = StorageAccount(user=request.user, cloud=cloud, identifier=oauth_result.account_id, status=1,
                                     access_token=oauth_result.access_token)
