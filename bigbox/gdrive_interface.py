@@ -7,8 +7,8 @@ from .models import *
 
 
 def add_storage_account(request, next_url, cloud):
-    flow = client.flow_from_clientsecrets(settings.GDRIVE_SECRETS_FILE, settings.GDRIVE_SCOPE,
-                                          settings.GDRIVE_REDIRECT_URL)
+    flow = client.OAuth2WebServerFlow(settings.GDRIVE_APP_KEY, settings.GDRIVE_APP_SECRET, settings.GDRIVE_SCOPE,
+                                      settings.GDRIVE_REDIRECT_URL)
     flow.params['access_type'] = 'offline'
     if 'error' in request.GET:
         error_message = 'An error occurred: ' + request.GET['error']
