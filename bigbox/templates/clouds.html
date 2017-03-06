@@ -9,7 +9,7 @@
             <div class="page-header">
                 <h2>
                     <span>My cloud accounts</span>
-                    <button class="btn btn-primary pull-right"><span class="glyphicon glyphicon-plus"></span> Link a cloud</button>
+                    <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#choose-cloud"><span class="glyphicon glyphicon-plus"></span> Link a cloud</button>
                 </h2>
             </div>
             {% for c in accounts %}
@@ -22,6 +22,28 @@
                     </div>
                 </div>
             {% endfor %}
+        </div>
+    </div>
+    <div class="modal fade" id="choose-cloud" tabindex="-1" >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Choose your cloud</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group">
+                        {% for c in clouds %}
+                            <a href="{% url 'cloud-add' c.name %}" class="list-group-item cloud-add-item">
+                                <img src="{% static 'img/' %}{{ c.icon }}" class="cloud-add-icon" />
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

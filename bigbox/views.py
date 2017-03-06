@@ -88,6 +88,7 @@ def confirm(request, username, token):
 @login_required
 def storage_accounts(request):
     user = request.user
+    clouds = CloudInterface.objects.all()
     account_info = []
     for acc in StorageAccount.objects.filter(user=user):
         module = importlib.import_module('bigbox.'+acc.cloud.class_name)
@@ -96,7 +97,7 @@ def storage_accounts(request):
         acc.email = getattr(module, "get_email")(client)
         acc.space = getattr(module, "get_space")(client)
         account_info.append(acc)
-    return render(request, 'clouds.html', {'accounts': account_info})
+    return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds})
 
 
 @login_required

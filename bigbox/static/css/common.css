@@ -46,3 +46,9 @@ h1 {
     vertical-align: bottom;
     width: calc(100% - 120px);
 }
+.cloud-add-icon {
+    width: 200px;
+}
+.cloud-add-item {
+    text-align: center;
+}
