@@ -1,23 +1,23 @@
-  <nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="{% url 'root' %}">Big Box</a>
-      </div>
-      <div id="navbar" class="collapse navbar-collapse">
-        <ul class="nav navbar-nav">
-          <li {% if active_home %}class="active"{% endif %}><a href="{% url 'home' %}">My Box</a></li>
-          <li {% if active_clouds %}class="active"{% endif %}><a href="{% url 'clouds' %}">Clouds</a></li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-          <li><span class="navbar-text">{{ user.get_full_name }} (${{ user.username }})</span></li>
-          <li><a href="{% url 'logout' %}">Sign Out</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'root' %}">Big Box</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li {% if active_home %}class="active"{% endif %}><a href="{% url 'home' %}">My Box</a></li>
+                    <li {% if active_clouds %}class="active"{% endif %}><a href="{% url 'clouds' %}">Clouds</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><span class="navbar-text">{{ user.get_full_name }} (${{ user.username }})</span></li>
+                    <li><a href="{% url 'logout' %}">Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>

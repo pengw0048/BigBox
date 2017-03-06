@@ -1,25 +1,25 @@
 {% extends 'barebone.html' %}
 {% block title %}Login{% endblock %}
 {% block body %}
-  {% include 'navbar-out.html' with active_login='true' %}
-  <div class="container">
-    <div class="mainframe">
-      <div class="credform">
-        <h1>Sign In</h1>
-        <form method="POST">
-          {% csrf_token %}
-          {% for field in form %}
-            <div class="form-group">
-              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-              {{ field }}
-              {% include 'fieldmsg.html' with err=field.errors %}
+    {% include 'navbar-out.html' with active_login='true' %}
+    <div class="container">
+        <div class="mainframe">
+            <div class="credform">
+                <h1>Sign In</h1>
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% include 'fieldmsg.html' with err=field.errors %}
+                        </div>
+                    {% endfor %}
+                    {% include 'popupmsg.html' with formerr=form.non_field_errors %}
+                    <button type="submit" class="btn btn-primary btn-lg">Sign me in!</button>
+                    <a class="btn btn-default btn-lg" href="{% url 'register' %}">Get an account</a>
+                </form>
             </div>
-          {% endfor %}
-          {% include 'popupmsg.html' with formerr=form.non_field_errors %}
-          <button type="submit" class="btn btn-primary btn-lg">Sign me in!</button>
-          <a class="btn btn-default btn-lg" href="{% url 'register' %}">Get an account</a>
-        </form>
-      </div>
+        </div>
     </div>
-  </div>
 {% endblock %}

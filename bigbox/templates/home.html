@@ -1,13 +1,13 @@
 {% extends 'barebone.html' %}
 {% block title %}My Box - {{ user.username }}{% endblock %}
 {% block body %}
-  {% include 'navbar-in.html' with active_home='true' %}
-  <div class="container">
-    <div class="mainframe">
-      {% include 'popupmsg.html' %}
+    {% include 'navbar-in.html' with active_home='true' %}
+    <div class="container">
+        <div class="mainframe">
+                {% include 'popupmsg.html' %}
+        </div>
     </div>
-  </div>
 {% endblock %}
 {% block scripts %}
-  {% load static %}
+    {% load static %}
 {% endblock %}
