@@ -87,7 +87,13 @@ def confirm(request, username, token):
 
 @login_required
 def storage_accounts(request):
-    return render(request, 'clouds.html')
+    user = request.user
+    account_info = []
+    for acc in StorageAccount.objects.filter(user=user):
+        fun = getattr(importlib.import_module('bigbox.'+acc.cloud.class_name), "show_storage_account")
+        info = fun(acc)
+        account_info.append({'info': info, 'acc': acc})
+    return render(request, 'clouds.html', {'accounts': account_info})
 
 
 @login_required

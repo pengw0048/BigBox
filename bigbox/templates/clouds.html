@@ -1,6 +1,7 @@
 {% extends 'barebone.html' %}
 {% block title %}Clouds - {{ user.username }}{% endblock %}
 {% block body %}
+    {% load static %}
     {% include 'navbar-in.html' with active_clouds='true' %}
     <div class="container">
         <div class="mainframe">
@@ -11,6 +12,13 @@
                     <button class="btn btn-primary pull-right"><span class="glyphicon glyphicon-plus"></span> Link a cloud</button>
                 </h2>
             </div>
+            {% for c in accounts %}
+                <div class="acloud">
+                    <div class="cloudcard-left">
+                        <img class="cloudcard-logo" src="{% static 'img/' %}{{ c.acc.cloud.icon }}" />
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
 {% endblock %}

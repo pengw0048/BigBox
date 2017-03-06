@@ -31,3 +31,7 @@ def add_storage_account(request, next_url, cloud):
     else:
         url = get_dropbox_auth_flow(request.session).start()
         return HttpResponseRedirect(url)
+
+
+def show_storage_account(acc):
+    return {}

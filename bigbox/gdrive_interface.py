@@ -33,3 +33,7 @@ def add_storage_account(request, next_url, cloud):
     else:
         auth_uri = flow.step1_get_authorize_url()
         return HttpResponseRedirect(auth_uri)
+
+
+def show_storage_account(acc):
+    return {}

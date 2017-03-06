@@ -22,3 +22,22 @@ body {
 h1 {
     text-align: center;
 }
+.acloud {
+    margin: 20px auto;
+    padding: 20px;
+    padding-bottom: 15px;
+    border-width: 1px;
+    border-left-width: 5px;
+    border-left-color: gray;
+    border-style: solid;
+    border-color: #ddd;
+    border-radius: 3px;
+}
+.cloudcard-logo {
+    width: 100px;
+}
+.cloudcard-left {
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 10px;
+}

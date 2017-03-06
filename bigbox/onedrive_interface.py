@@ -46,3 +46,6 @@ def get_user_info(access_token):
     r = requests.get("https://apis.live.net/v5.0/me", params={'access_token': access_token})
     return r.json()
 
+
+def show_storage_account(acc):
+    return {}
