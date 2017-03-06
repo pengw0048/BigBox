@@ -1,0 +1,19 @@
+{% extends 'barebone.html' %}
+{% block title %}Clouds - {{ user.username }}{% endblock %}
+{% block body %}
+  {% include 'navbar-in.html' with active_clouds='true' %}
+  <div class="container">
+    <div class="mainframe">
+      {% include 'popupmsg.html' %}
+      <div class="page-header">
+        <h2>
+          <span>My cloud accounts</span>
+          <button class="btn btn-primary pull-right"><span class="glyphicon glyphicon-plus"></span> Link a cloud</button>
+        </h2>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  {% load static %}
+{% endblock %}

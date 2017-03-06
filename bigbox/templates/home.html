@@ -1,10 +1,10 @@
 {% extends 'barebone.html' %}
-{% block title %}Home - {{ user.username }}{% endblock %}
+{% block title %}My Box - {{ user.username }}{% endblock %}
 {% block body %}
   {% include 'navbar-in.html' with active_home='true' %}
   <div class="container">
     <div class="mainframe">
-
+      {% include 'popupmsg.html' %}
     </div>
   </div>
 {% endblock %}

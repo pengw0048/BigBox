@@ -10,5 +10,6 @@ urlpatterns = [
     url(r'^register/?$', views.register, name='register'),
     url(r'^home/?$', views.home, name='home'),
     url(r'^confirm/(?P<username>\w+)/(?P<token>[\w-]+)/?$', views.confirm, name='confirm'),
+    url(r'^clouds/?$', views.storage_accounts, name='clouds'),
     url(r'^clouds/add/(?P<cloud>\w+)/?$', views.add_storage_account, name='cloud-add'),
 ]

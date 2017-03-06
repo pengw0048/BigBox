@@ -29,7 +29,7 @@ def add_storage_account(request, next_url, cloud):
             messages.error(request, 'An error occurred')
         else:
             if StorageAccount.objects.all().filter(user=request.user).filter(identifier=id).exists():
-                messages.warning(request, 'This space is already linked to your account')
+                messages.warning(request, 'This OneDrive space is already linked to your account')
             else:
                 sa = StorageAccount(user=request.user, cloud=cloud, identifier=id, status=1,
                                     refresh_token=refresh_token, access_token=access_token,
