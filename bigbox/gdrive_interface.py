@@ -2,7 +2,7 @@ from django.http import *
 from django.conf import settings
 from django.contrib import messages
 from oauth2client import client
-from apiclient.discovery import build
+from apiclient.discovery import build, Resource
 from .models import *
 import httplib2
 
@@ -36,8 +36,25 @@ def add_storage_account(request, next_url, cloud):
         return HttpResponseRedirect(auth_uri)
 
 
-def get_client(acc: StorageAccount):
+def get_client(acc: StorageAccount) -> Resource:
     cred = client.OAuth2Credentials.from_json(acc.additional_data)
     http = cred.authorize(httplib2.Http())
     drive = build('drive', 'v3', http=http)
     return drive
+
+
+def get_full_name(g: Resource) -> str:
+    res = g.about().get(fields='user/displayName').execute()
+    return res['user']['displayName']
+
+
+def get_email(g: Resource) -> str:
+    res = g.about().get(fields='user/emailAddress').execute()
+    return res['user']['emailAddress']
+
+
+def get_space(g: Resource) -> dict:
+    res = g.about().get(fields='storageQuota').execute()
+    used = res['storageQuota']['usage']
+    total = res['storageQuota']['limit']
+    return {'used': used, 'total': total}

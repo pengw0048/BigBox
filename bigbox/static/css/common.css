@@ -41,3 +41,8 @@ h1 {
     vertical-align: top;
     margin-right: 10px;
 }
+.cloudcard-right {
+    display: inline-block;
+    vertical-align: bottom;
+    width: calc(100% - 120px);
+}

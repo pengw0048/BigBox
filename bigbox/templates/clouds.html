@@ -15,7 +15,10 @@
             {% for c in accounts %}
                 <div class="acloud">
                     <div class="cloudcard-left">
-                        <img class="cloudcard-logo" src="{% static 'img/' %}{{ c.acc.cloud.icon }}" />
+                        <img class="cloudcard-logo" src="{% static 'img/' %}{{ c.cloud.icon }}" />
+                    </div>
+                    <div class="cloudcard-right">
+                        {{ c.full_name }} &nbsp; {{ c.identifier }} &nbsp; {{ c.email }} &nbsp; {{ c.space.used }} / {{ c.space.total }}
                     </div>
                 </div>
             {% endfor %}

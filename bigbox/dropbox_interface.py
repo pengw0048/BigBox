@@ -36,3 +36,18 @@ def add_storage_account(request, next_url, cloud):
 
 def get_client(acc: StorageAccount) -> Dropbox:
     return Dropbox(acc.access_token)
+
+
+def get_full_name(db: Dropbox) -> str:
+    return db.users_get_current_account().name.display_name
+
+
+def get_email(db: Dropbox) -> str:
+    return db.users_get_current_account().email
+
+
+def get_space(db: Dropbox) -> dict:
+    info = db.users_get_space_usage()
+    used = info.used
+    total = info.allocation.get_individual().allocated
+    return {'used': used, 'total': total}

@@ -63,6 +63,19 @@ def get_client(acc: StorageAccount):
     return client
 
 
+def get_full_name(od: onedrivesdk.OneDriveClient) -> str:
+    info = get_user_info(od.auth_provider._session.access_token)
+    return info['name']
+
+
+def get_email(od: onedrivesdk.OneDriveClient) -> str:
+    return ""
+
+
+def get_space(od: onedrivesdk.OneDriveClient) -> dict:
+    return {'used': 0, 'total': 0}
+
+
 class MySession(Session):
     def save_session(self, **save_session_kwargs):
         data = {'token_type': self.token_type, 'scope': ' '.join(self.scope), 'access_token': self.access_token,
