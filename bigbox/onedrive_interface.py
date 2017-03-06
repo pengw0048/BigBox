@@ -47,7 +47,7 @@ def add_storage_account(request, next_url, cloud):
 
 
 def get_user_info(access_token):
-    r = requests.get("https://apis.live.net/v5.0/me", params={'access_token': access_token})
+    r = requests.get(settings.ONEDRIVE_BASE_URL + "users/me", headers={'Authorization': 'Bearer ' + access_token})
     return r.json()
 
 
@@ -65,15 +65,20 @@ def get_client(acc: StorageAccount):
 
 def get_full_name(od: onedrivesdk.OneDriveClient) -> str:
     info = get_user_info(od.auth_provider._session.access_token)
-    return info['name']
+    return info['displayName']
 
 
 def get_email(od: onedrivesdk.OneDriveClient) -> str:
-    return ""
+    info = get_user_info(od.auth_provider._session.access_token)
+    return info['userPrincipalName']
 
 
 def get_space(od: onedrivesdk.OneDriveClient) -> dict:
-    return {'used': 0, 'total': 0}
+    r = requests.get(settings.ONEDRIVE_BASE_URL + "me/drive",
+                     headers={'Authorization': 'bearer ' + od.auth_provider._session.access_token}).json()
+    used = r['quota']['used']
+    total = r['quota']['total']
+    return {'used': used, 'total': total}
 
 
 class MySession(Session):
