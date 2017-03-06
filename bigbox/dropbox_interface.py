@@ -34,9 +34,5 @@ def add_storage_account(request, next_url, cloud):
         return HttpResponseRedirect(url)
 
 
-def show_storage_account(acc):
-    return {}
-
-
 def get_client(acc: StorageAccount) -> Dropbox:
     return Dropbox(acc.access_token)

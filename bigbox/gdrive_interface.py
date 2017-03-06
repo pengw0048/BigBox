@@ -36,10 +36,6 @@ def add_storage_account(request, next_url, cloud):
         return HttpResponseRedirect(auth_uri)
 
 
-def show_storage_account(acc):
-    return {}
-
-
 def get_client(acc: StorageAccount):
     cred = client.OAuth2Credentials.from_json(acc.additional_data)
     http = cred.authorize(httplib2.Http())

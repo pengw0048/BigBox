@@ -50,10 +50,6 @@ def get_user_info(access_token):
     return r.json()
 
 
-def show_storage_account(acc):
-    return {}
-
-
 def get_client(acc: StorageAccount):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
