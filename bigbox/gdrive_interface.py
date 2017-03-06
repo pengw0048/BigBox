@@ -18,7 +18,7 @@ def add_storage_account(request, next_url, cloud):
     elif 'code' in request.GET:
         try:
             credentials = flow.step2_exchange(request.GET['code'])
-            id = credentials.id_token['email']
+            id = credentials.id_token['sub']
         except:
             messages.error(request, 'An error occurred')
         else:
