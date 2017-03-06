@@ -7,6 +7,7 @@ import asyncio
 import requests
 from onedrivesdk.session import Session
 import json
+from time import time
 
 
 def add_storage_account(request, next_url, cloud):
@@ -67,12 +68,12 @@ class MySession(Session):
         data = {'token_type': self.token_type, 'scope': ' '.join(self.scope), 'access_token': self.access_token,
                 'client_id': self.client_id, 'auth_server_url': self.auth_server_url,
                 'redirect_uri': self.redirect_uri, 'refresh_token': self.refresh_token,
-                'client_secret': self.client_secret}
+                'client_secret': self.client_secret, 'expires_at': self._expires_at}
         return json.dumps(data)
 
     def load_session(**load_session_kwargs):
         data = json.loads(load_session_kwargs['sa'].additional_data)
-        session = Session(data['token_type'], 0, data['scope'], data['access_token'], data['client_id'],
-                          data['auth_server_url'], data['redirect_uri'], data['refresh_token'],
+        session = Session(data['token_type'], data['expires_at'] - time(), data['scope'], data['access_token'],
+                          data['client_id'], data['auth_server_url'], data['redirect_uri'], data['refresh_token'],
                           data['client_secret'])
         return session
