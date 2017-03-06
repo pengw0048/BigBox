@@ -13,5 +13,5 @@ Redirect: http://localhost:8000/clouds/add/gdrive
 Key: xxx
 Secret: xxx
 Redirect: http://localhost:8000/clouds/add/onedrive
-Base: https://api.onedrive.com/v1.0/
-Scope: wl.basic,wl.signin,wl.offline_access,files.readwrite.all
+Base: https://graph.microsoft.com/v1.0/
+Scope: offline_access,Files.ReadWrite,User.Read
