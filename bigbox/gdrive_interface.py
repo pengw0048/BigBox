@@ -39,6 +39,8 @@ def add_storage_account(request, next_url, cloud):
 def get_client(acc: StorageAccount) -> Resource:
     cred = client.OAuth2Credentials.from_json(acc.additional_data)
     http = cred.authorize(httplib2.Http())
+    acc.additional_data = cred.to_json()
+    acc.save()
     drive = build('drive', 'v3', http=http)
     return drive
 

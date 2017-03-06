@@ -60,6 +60,8 @@ def get_client(acc: StorageAccount):
     auth_provider.load_session(sa=acc)
     auth_provider.refresh_token()
     client = onedrivesdk.OneDriveClient(settings.ONEDRIVE_BASE_URL, auth_provider, http_provider)
+    acc.additional_data = MySession.save_session(client.auth_provider._session)
+    acc.save()
     return client
 
 
