@@ -24,8 +24,8 @@ def add_storage_account(request, next_url, cloud):
             about = drive.about().get(fields='user').execute()
             full_name = about['user']['displayName']
             email = about['user']['emailAddress']
-        except RawPostDataException:
-            messages.error(request, 'An error occurred')
+        except Exception as e:
+            messages.error(request, 'An error occurred: ' + str(e))
         else:
             if StorageAccount.objects.all().filter(identifier=id).exists():
                 messages.warning(request, 'This Google Drive space is already linked')
