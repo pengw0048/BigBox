@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime
 
 
 class CloudInterface(models.Model):
@@ -18,11 +17,21 @@ class StorageAccount(models.Model):
     cloud = models.ForeignKey(CloudInterface)
     identifier = models.TextField()
     status = models.IntegerField()
-    refresh_token = models.TextField(blank=True)
-    refresh_token_expire = models.DateTimeField(null=True, blank=True)
-    access_token = models.TextField(blank=True)
-    access_token_expire = models.DateTimeField(null=True, blank=True)
-    additional_data = models.TextField(blank=True)
+    credentials = models.TextField(blank=True)
+    user_full_name = models.TextField()
+    user_short_name = models.TextField()
+    email = models.TextField()
+    display_name = models.TextField()
+    color = models.CharField(max_length=8)
 
     def __str__(self):
-        return str(self.user) + ' ' + str(self.cloud) + ' ' + str(self.identifier) + ' ' + str(self.status)
+        return ' '.join([str(self.user), str(self.cloud), str(self.identifier), str(self.status),
+                         str(self.user_full_name), str(self.user_short_name), str(self.email), str(self.display_name),
+                         str(self.color)])
+
+    def save(self, *args, **kwargs):
+        if not self.user_short_name:
+            self.user_short_name = self.user_full_name.split(' ')[0]
+        if not self.display_name:
+            self.display_name = "%s's %s" % (self.user_short_name, self.cloud.display_name)
+        super().save(*args, **kwargs)

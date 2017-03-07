@@ -18,7 +18,7 @@
                         <img class="cloudcard-logo" src="{% static 'img/' %}{{ c.cloud.icon }}" />
                     </div>
                     <div class="cloudcard-right">
-                        {{ c.full_name }} &nbsp; {{ c.identifier }} &nbsp; {{ c.email }} &nbsp; {{ c.space.used }} / {{ c.space.total }}
+                        {{ c.user_full_name }} &nbsp; {{ c.email }} &nbsp; {{ c.display_name }} &nbsp; {{ c.color }} &nbsp; {{ c.space.used }} / {{ c.space.total }}
                     </div>
                 </div>
             {% endfor %}

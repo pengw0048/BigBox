@@ -8,6 +8,7 @@ import requests
 from onedrivesdk.session import Session
 import json
 from time import time
+import datetime
 
 
 def add_storage_account(request, next_url, cloud):
@@ -25,9 +26,11 @@ def add_storage_account(request, next_url, cloud):
             client.auth_provider.authenticate(request.GET['code'], settings.ONEDRIVE_REDIRECT_URL,
                                               settings.ONEDRIVE_APP_SECRET)
             access_token = client.auth_provider._session.access_token
-            refresh_token = client.auth_provider._session.refresh_token
-            expires_at = client.auth_provider._session._expires_at
-            id = get_user_info(access_token)['id']
+            info = get_user_info(access_token)
+            id = info['id']
+            full_name = info['displayName']
+            short_name = info['givenName']
+            email = info['userPrincipalName']
         except:
             messages.error(request, 'An error occurred')
         else:
@@ -35,9 +38,8 @@ def add_storage_account(request, next_url, cloud):
                 messages.warning(request, 'This OneDrive space is already linked')
             else:
                 sa = StorageAccount(user=request.user, cloud=cloud, identifier=id, status=1,
-                                    refresh_token=refresh_token, access_token=access_token,
-                                    access_token_expire=datetime.fromtimestamp(int(expires_at)),
-                                    additional_data=MySession.save_session(client.auth_provider._session))
+                                    credentials=MySession.save_session(client.auth_provider._session),
+                                    user_full_name=full_name, user_short_name=short_name, email=email)
                 sa.save()
                 messages.success(request, 'A new OneDrive space is now linked to your account')
         return HttpResponseRedirect(next_url)
@@ -57,22 +59,12 @@ def get_client(acc: StorageAccount):
     http_provider = onedrivesdk.HttpProvider()
     auth_provider = onedrivesdk.AuthProvider(http_provider, settings.ONEDRIVE_APP_KEY,
                                              settings.ONEDRIVE_SCOPE.split(","), session_type=MySession)
-    auth_provider.load_session(sa=acc)
+    auth_provider.load_session(cred=acc.credentials)
     auth_provider.refresh_token()
     client = onedrivesdk.OneDriveClient(settings.ONEDRIVE_BASE_URL, auth_provider, http_provider)
-    acc.additional_data = MySession.save_session(client.auth_provider._session)
+    acc.credentials = MySession.save_session(client.auth_provider._session)
     acc.save()
     return client
-
-
-def get_full_name(od: onedrivesdk.OneDriveClient) -> str:
-    info = get_user_info(od.auth_provider._session.access_token)
-    return info['displayName']
-
-
-def get_email(od: onedrivesdk.OneDriveClient) -> str:
-    info = get_user_info(od.auth_provider._session.access_token)
-    return info['userPrincipalName']
 
 
 def get_space(od: onedrivesdk.OneDriveClient) -> dict:
@@ -92,7 +84,7 @@ class MySession(Session):
         return json.dumps(data)
 
     def load_session(**load_session_kwargs):
-        data = json.loads(load_session_kwargs['sa'].additional_data)
+        data = json.loads(load_session_kwargs['cred'])
         session = Session(data['token_type'], data['expires_at'] - time(), data['scope'], data['access_token'],
                           data['client_id'], data['auth_server_url'], data['redirect_uri'], data['refresh_token'],
                           data['client_secret'])

@@ -15,6 +15,8 @@ def add_storage_account(request, next_url, cloud):
     if 'state' in request.GET:
         try:
             oauth_result = get_dropbox_auth_flow(request.session).finish(request.GET)
+            db = Dropbox(oauth_result.access_token)
+            ai = db.users_get_current_account()
         except:
             error_message = 'An error occurred'
             if 'error' in request.GET and 'error_description' in request.GET:
@@ -25,7 +27,8 @@ def add_storage_account(request, next_url, cloud):
                 messages.warning(request, 'This Dropbox space is already linked')
             else:
                 sa = StorageAccount(user=request.user, cloud=cloud, identifier=oauth_result.account_id, status=1,
-                                    access_token=oauth_result.access_token)
+                                    credentials=oauth_result.access_token, user_full_name=ai.name.display_name,
+                                    user_short_name=ai.name.abbreviated_name, email=ai.email)
                 sa.save()
                 messages.success(request, 'A new Dropbox space is now linked to your account')
         return HttpResponseRedirect(next_url)
@@ -35,15 +38,7 @@ def add_storage_account(request, next_url, cloud):
 
 
 def get_client(acc: StorageAccount) -> Dropbox:
-    return Dropbox(acc.access_token)
-
-
-def get_full_name(db: Dropbox) -> str:
-    return db.users_get_current_account().name.display_name
-
-
-def get_email(db: Dropbox) -> str:
-    return db.users_get_current_account().email
+    return Dropbox(acc.credentials)
 
 
 def get_space(db: Dropbox) -> dict:

@@ -19,15 +19,19 @@ def add_storage_account(request, next_url, cloud):
         try:
             credentials = flow.step2_exchange(request.GET['code'])
             id = credentials.id_token['sub']
-        except:
+            http = credentials.authorize(httplib2.Http())
+            drive = build('drive', 'v3', http=http)
+            about = drive.about().get(fields='user').execute()
+            full_name = about['user']['displayName']
+            email = about['user']['emailAddress']
+        except RawPostDataException:
             messages.error(request, 'An error occurred')
         else:
             if StorageAccount.objects.all().filter(identifier=id).exists():
                 messages.warning(request, 'This Google Drive space is already linked')
             else:
                 sa = StorageAccount(user=request.user, cloud=cloud, identifier=id, status=1,
-                                    refresh_token=credentials.refresh_token, access_token=credentials.access_token,
-                                    access_token_expire=credentials.token_expiry, additional_data=credentials.to_json())
+                                    credentials=credentials.to_json(), user_full_name=full_name, email=email)
                 sa.save()
                 messages.success(request, 'A new Google Drive space is now linked to your account')
         return HttpResponseRedirect(next_url)
@@ -37,22 +41,12 @@ def add_storage_account(request, next_url, cloud):
 
 
 def get_client(acc: StorageAccount) -> Resource:
-    cred = client.OAuth2Credentials.from_json(acc.additional_data)
+    cred = client.OAuth2Credentials.from_json(acc.credentials)
     http = cred.authorize(httplib2.Http())
-    acc.additional_data = cred.to_json()
+    acc.credentials = cred.to_json()
     acc.save()
     drive = build('drive', 'v3', http=http)
     return drive
-
-
-def get_full_name(g: Resource) -> str:
-    res = g.about().get(fields='user/displayName').execute()
-    return res['user']['displayName']
-
-
-def get_email(g: Resource) -> str:
-    res = g.about().get(fields='user/emailAddress').execute()
-    return res['user']['emailAddress']
 
 
 def get_space(g: Resource) -> dict:

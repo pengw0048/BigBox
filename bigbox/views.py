@@ -93,8 +93,6 @@ def storage_accounts(request):
     for acc in StorageAccount.objects.filter(user=user):
         module = importlib.import_module('bigbox.'+acc.cloud.class_name)
         client = getattr(module, "get_client")(acc)
-        acc.full_name = getattr(module, "get_full_name")(client)
-        acc.email = getattr(module, "get_email")(client)
         acc.space = getattr(module, "get_space")(client)
         account_info.append(acc)
     return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds})
