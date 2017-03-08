@@ -8,8 +8,8 @@ import httplib2
 
 
 def add_storage_account(request, next_url, cloud):
-    flow = client.OAuth2WebServerFlow(settings.GDRIVE_APP_KEY, settings.GDRIVE_APP_SECRET, settings.GDRIVE_SCOPE,
-                                      settings.GDRIVE_REDIRECT_URL)
+    flow = client.OAuth2WebServerFlow(settings.GDRIVE_APP_KEY, client_secret=settings.GDRIVE_APP_SECRET,
+                                      scope=settings.GDRIVE_SCOPE, redirect_uri=settings.GDRIVE_REDIRECT_URL)
     flow.params['access_type'] = 'offline'
     if 'error' in request.GET:
         error_message = 'An error occurred: ' + request.GET['error']

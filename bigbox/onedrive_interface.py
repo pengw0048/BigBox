@@ -8,7 +8,6 @@ import requests
 from onedrivesdk.session import Session
 import json
 from time import time
-import datetime
 
 
 def add_storage_account(request, next_url, cloud):
