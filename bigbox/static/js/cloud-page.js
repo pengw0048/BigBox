@@ -1,8 +1,7 @@
 $(document).ready(function() {
     $('.color-picker').each(function () {
         $(this).colorpicker('setValue', $(this).css('color'));
-    });
-    $('.color-picker').on('hidePicker', function () {
+    }).on('hidePicker', function () {
         me = $(this);
         color = me.data('colorpicker').color.toHex();
         pk = me.data('pk');

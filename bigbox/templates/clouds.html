@@ -23,8 +23,12 @@
                         </strong></p>
                         <a href="#" class="pull-right color-picker" style="color: {{ c.color }}" data-pk="{{ c.pk }}">color</a>
                         <div class="clearfix"></div>
-                        <div>Owner: {{ c.user_full_name }} <span class="text-muted">({{ c.email }})</span></div>
-                        {{ c.space.used }} / {{ c.space.total }}
+                        <p>Owner: {{ c.user_full_name }} <span class="text-muted">({{ c.email }})</span></p>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="{{ c.space.percent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ c.space.percent }}%">
+                                <span>{{ c.space.used|filesizeformat }}/{{ c.space.total|filesizeformat }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             {% endfor %}
