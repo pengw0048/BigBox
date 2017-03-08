@@ -12,4 +12,6 @@ urlpatterns = [
     url(r'^confirm/(?P<username>\w+)/(?P<token>[\w-]+)/?$', views.confirm, name='confirm'),
     url(r'^clouds/?$', views.storage_accounts, name='clouds'),
     url(r'^clouds/add/(?P<cloud>\w+)/?$', views.add_storage_account, name='cloud-add'),
+    url(r'^clouds/rename/?$', views.rename_storage_account, name='cloud-rename'),
+    url(r'^clouds/color/?$', views.color_storage_account, name='cloud-color'),
 ]

@@ -103,3 +103,29 @@ def add_storage_account(request, cloud):
     cloud = get_object_or_404(CloudInterface, name=cloud)
     fun = getattr(importlib.import_module('bigbox.'+cloud.class_name), "add_storage_account")
     return fun(request, reverse('clouds'), cloud)
+
+
+@transaction.atomic
+@login_required
+def rename_storage_account(request):
+    if 'pk' not in request.POST or 'value' not in request.POST:
+        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
+    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
+    if acc.user != request.user:
+        return JsonResponse({'status': 'error', 'msg': 'not your account'})
+    acc.display_name = request.POST['value']
+    acc.save()
+    return JsonResponse({'status': 'ok'})
+
+
+@transaction.atomic
+@login_required
+def color_storage_account(request):
+    if 'pk' not in request.POST or 'value' not in request.POST:
+        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
+    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
+    if acc.user != request.user:
+        return JsonResponse({'status': 'error', 'msg': 'not your account'})
+    acc.color = request.POST['value']
+    acc.save()
+    return JsonResponse({'status': 'ok'})
