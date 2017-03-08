@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from colorsys import hls_to_rgb
+from random import random
 
 
 class CloudInterface(models.Model):
@@ -34,4 +36,7 @@ class StorageAccount(models.Model):
             self.user_short_name = self.user_full_name.split(' ')[0]
         if not self.display_name:
             self.display_name = "%s's %s" % (self.user_short_name, self.cloud.display_name)
+        if not self.color:
+            color = hls_to_rgb(random(), 0.8, 0.9)
+            self.color = '#%02x%02x%02x' % (int(color[0] * 256), int(color[1] * 256), int(color[2] * 256))
         super().save(*args, **kwargs)

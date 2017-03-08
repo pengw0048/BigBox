@@ -13,7 +13,7 @@
                 </h2>
             </div>
             {% for c in accounts %}
-                <div class="acloud">
+                <div class="acloud" style="border-left-color: {{ c.color }}">
                     <div class="cloudcard-left">
                         <img class="cloudcard-logo" src="{% static 'img/' %}{{ c.cloud.icon }}" />
                     </div>
