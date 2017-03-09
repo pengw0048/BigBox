@@ -1,7 +1,3 @@
-$(document).ready(function() {
-    $('.editable-text').editable();
-    $('.color-picker').colorpicker();
-});
 $.ajaxSetup({
     xhrFields: {
         withCredentials: true

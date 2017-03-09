@@ -21,7 +21,9 @@
                         <p class="pull-left"><strong>
                             <a href="#" class="editable-text" data-type="text" data-pk="{{ c.pk }}" data-url="{% url 'cloud-rename' %}" data-title="Choose a nickname for this cloud">{{ c.display_name }}</a>
                         </strong></p>
-                        <a href="#" class="pull-right color-picker" style="color: {{ c.color }}" data-pk="{{ c.pk }}">color</a>
+                        <a href="#" class="pull-right color-picker" data-pk="{{ c.pk }}">
+                            <i class="cloud-color-icon" style="background-color: {{ c.color }}"></i>
+                        </a>
                         <div class="clearfix"></div>
                         <p>Owner: {{ c.user_full_name }} <span class="text-muted">({{ c.email }})</span></p>
                         <div class="progress">

@@ -1,6 +1,7 @@
 $(document).ready(function() {
+    $('.editable-text').editable();
     $('.color-picker').each(function () {
-        $(this).colorpicker('setValue', $(this).css('color'));
+        $(this).colorpicker('setValue', $(this).children().first().css('background-color'));
     }).on('hidePicker', function () {
         me = $(this);
         color = me.data('colorpicker').color.toHex();
@@ -13,7 +14,7 @@ $(document).ready(function() {
         })
     }).on('changeColor', function () {
         color = $(this).data('colorpicker').color.toHex();
-        $(this).css('color', color);
+        $(this).children().first().css('background-color', color);
         pk = $(this).data('pk');
         $('#acloud-' + pk).css('border-left-color', color);
     });

@@ -6,6 +6,11 @@ body {
     margin: 0 auto;
     max-width: 750px;
 }
+.mainframe-large {
+    margin: 0 auto;
+    max-width: 1110px;
+    min-width: 500px;
+}
 .credform {
     margin: 20px auto;
     padding: 20px;
@@ -65,4 +70,23 @@ h1 {
 }
 .color-picker {
     text-shadow: 1px 1px #ddd;
+}
+.files-left-nav {
+    margin-top: 2.5em;
+    width: 100%;
+}
+.color-icon {
+    width:0.8em;
+    height:0.8em;
+    display:inline-block;
+    position:absolute;
+    top:50%;
+    left:1em;
+    z-index:-1;
+    transform: translateY(-50%);
+}
+.cloud-color-icon {
+    width:1em;
+    height:1em;
+    display:inline-block;
 }
