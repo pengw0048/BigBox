@@ -58,7 +58,8 @@ def get_space(g: Resource) -> dict:
 
 
 def get_file_list(g: Resource, path: str) -> list:
-    fs = g.files().list(q="'root' in parents", fields="files(id,mimeType,modifiedTime,name,size)").execute();
+    fs = g.files().list(q="'root' in parents and trashed = false",
+                        fields="files(id,mimeType,modifiedTime,name,size)").execute()
     ret = []
     try:
         for f in fs['files']:
