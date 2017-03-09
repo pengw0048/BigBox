@@ -5,6 +5,7 @@ from oauth2client import client
 from apiclient.discovery import build, Resource
 from .models import *
 import httplib2
+from dateutil import parser
 
 
 def add_storage_account(request, next_url, cloud):
@@ -57,4 +58,18 @@ def get_space(g: Resource) -> dict:
 
 
 def get_file_list(g: Resource, path: str) -> list:
-    return []
+    fs = g.files().list(q="'root' in parents", fields="files(id,mimeType,modifiedTime,name,size)").execute();
+    ret = []
+    try:
+        for f in fs['files']:
+            try:
+                if f['mimeType'] == 'application/vnd.google-apps.folder':
+                    ret.append({'name': f['name'], 'id': f['id'], 'is_folder': True})
+                else:
+                    ret.append({'name': f['name'], 'id': f['id'], 'size': f['size'],
+                                'time': parser.parse(f['modifiedTime']), 'is_folder': False})
+            except:
+                raise
+    except:
+        raise
+    return ret
