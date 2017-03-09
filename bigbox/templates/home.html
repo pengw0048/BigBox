@@ -2,12 +2,60 @@
 {% block title %}My Box - {{ user.username }}{% endblock %}
 {% block body %}
     {% include 'navbar-in.html' with active_home='true' %}
-    <div class="container">
-        <div class="mainframe">
-                {% include 'popupmsg.html' %}
+    <div class="mainframe-large">
+        <div class="col-xs-12">
+            {% include 'popupmsg.html' %}
+            <ol class="breadcrumb" dir="ltr">
+                <li class="breadcrumb-item"><a href="https://idleberg.com/demo/Bootstrap-Listr-2.3-alpha"><i class="fa fa-fw fa-home fa-lg"></i> </a></li>
+            </ol>
+        </div>
+        <div class="col-xs-2">
+            <div class="btn-group-vertical files-left-nav" data-toggle="buttons">
+                <label class="btn btn-sm btn-default active">
+                    <i class="color-icon" style="background-color: yellow"></i>
+                    <input type="checkbox" name="cloud" value="-1" autocomplete="off" checked><small>Big files</small>
+                </label>
+                {% for c in acc %}
+                    <label class="btn btn-sm btn-default active">
+                        <i class="color-icon" style="background-color: {{ c.color }}"></i>
+                        <input type="checkbox" name="options" value="{{ c.pk }}" autocomplete="off" checked><small>{{ c.display_name }}</small>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-xs-10">
+            <div class="table-responsive">
+                <table id="listr-table" class="table table-hover">
+                    <colgroup>
+                        <col style="width:65%">
+                        <col style="width:15%">
+                        <col style="width:20%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th class="text-xs-left" data-sort="string">Name</th>
+                        <th class="text-xs-left" data-sort="int">Size</th>
+                        <th class="text-xs-left" data-sort="int">Modified</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <td colspan="3">
+
+                        </td>
+                    </tr>
+                    </tfoot>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 {% endblock %}
 {% block scripts %}
     {% load static %}
+    <link rel="stylesheet" href="{% static 'css/listr.pack.css' %}">
+    <script src="{% static 'js/listr.pack.js' %}"></script>
+    <script src="{% static 'js/common.js' %}"></script>
 {% endblock %}

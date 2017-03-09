@@ -90,3 +90,10 @@ h1 {
     height:1em;
     display:inline-block;
 }
+.btn-default.active,
+.btn-default:hover,
+.btn-default.active:hover,
+.btn-default.focus,
+.btn-default.active.focus {
+    background-color: #fff;
+}
