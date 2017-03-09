@@ -79,6 +79,8 @@ h1 {
     width:0.8em;
     height:0.8em;
     display:inline-block;
+}
+.icon-left {
     position:absolute;
     top:50%;
     left:1em;

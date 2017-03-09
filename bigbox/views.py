@@ -71,8 +71,21 @@ your email address and complete the registration of your account:
 @login_required
 def home(request):
     user = request.user
-    acc = StorageAccount.objects.filter(user=user)
-    return render(request, 'home.html', {'user': user, 'acc': acc})
+    accs = StorageAccount.objects.filter(user=user)
+    files = {}
+    for c in accs:
+        module = importlib.import_module('bigbox.'+c.cloud.class_name)
+        client = getattr(module, "get_client")(c)
+        fs = getattr(module, "get_file_list")(client, '')
+        for f in fs:
+            f['acc'] = c
+            if f['is_folder'] and f['name'] in files:
+                files[f['name']]['clouds'].append(c)
+            else:
+                files[f['name']] = f
+                if f['is_folder']:
+                    f['clouds'] = [c]
+    return render(request, 'home.html', {'user': user, 'acc': accs, 'files': list(files.values())})
 
 
 @transaction.atomic

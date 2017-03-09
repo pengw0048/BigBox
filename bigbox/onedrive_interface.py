@@ -74,6 +74,10 @@ def get_space(od: onedrivesdk.OneDriveClient) -> dict:
     return {'used': used, 'total': total}
 
 
+def get_file_list(od: onedrivesdk.OneDriveClient, path: str) -> list:
+    return []
+
+
 class MySession(Session):
     def save_session(self, **save_session_kwargs):
         data = {'token_type': self.token_type, 'scope': ' '.join(self.scope), 'access_token': self.access_token,

@@ -46,3 +46,17 @@ def get_space(db: Dropbox) -> dict:
     used = info.used
     total = info.allocation.get_individual().allocated
     return {'used': used, 'total': total}
+
+
+def get_file_list(db: Dropbox, path: str) -> list:
+    ret = []
+    try:
+        for f in db.files_list_folder(path).entries:
+            if hasattr(f, 'size'):
+                ret.append({'name': f.name, 'id': f.path_lower, 'size': f.size,
+                            'time': f.client_modified, 'is_folder': False})
+            else:
+                ret.append({'name': f.name, 'id': f.path_lower, 'is_folder': True})
+    except:
+        pass
+    return ret

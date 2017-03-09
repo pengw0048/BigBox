@@ -54,3 +54,7 @@ def get_space(g: Resource) -> dict:
     used = res['storageQuota']['usage']
     total = res['storageQuota']['limit']
     return {'used': used, 'total': total}
+
+
+def get_file_list(g: Resource, path: str) -> list:
+    return []
