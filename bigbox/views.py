@@ -79,12 +79,11 @@ def home(request):
         fs = getattr(module, "get_file_list")(client, '/')
         for f in fs:
             f['acc'] = c
-            if f['is_folder'] and f['name'] in files:
+            if f['name'] in files:
                 files[f['name']]['clouds'].append(c)
             else:
                 files[f['name']] = f
-                if f['is_folder']:
-                    f['clouds'] = [c]
+                f['clouds'] = [c]
     fl = sorted(list(files.values()), key=lambda f: ('d' if f['is_folder'] else 'f') + f['name'].lower())
     return render(request, 'home.html', {'user': user, 'acc': accs, 'files': fl})
 
