@@ -6,6 +6,9 @@ from apiclient.discovery import build, Resource
 from .models import *
 import httplib2
 from dateutil import parser
+import json
+from datetime import datetime, timedelta
+import requests
 
 
 def add_storage_account(request, next_url, cloud):
@@ -25,6 +28,9 @@ def add_storage_account(request, next_url, cloud):
             about = drive.about().get(fields='user').execute()
             full_name = about['user']['displayName']
             email = about['user']['emailAddress']
+            access_token = credentials.access_token
+            refresh_token = credentials.refresh_token
+            expire_at = credentials.token_expiry.isoformat()
         except Exception as e:
             messages.error(request, 'An error occurred: ' + str(e))
         else:
@@ -32,7 +38,8 @@ def add_storage_account(request, next_url, cloud):
                 messages.warning(request, 'This Google Drive space is already linked')
             else:
                 sa = StorageAccount(user=request.user, cloud=cloud, identifier=id, status=1,
-                                    credentials=credentials.to_json(), user_full_name=full_name, email=email)
+                                    user_full_name=full_name, email=email,
+                                    credentials=json.dumps({'a': access_token, 'r': refresh_token, 'e': expire_at}))
                 sa.save()
                 messages.success(request, 'A new Google Drive space is now linked to your account')
         return HttpResponseRedirect(next_url)
@@ -41,31 +48,44 @@ def add_storage_account(request, next_url, cloud):
         return HttpResponseRedirect(auth_uri)
 
 
-def get_client(acc: StorageAccount) -> Resource:
-    cred = client.OAuth2Credentials.from_json(acc.credentials)
-    http = cred.authorize(httplib2.Http())
-    acc.credentials = cred.to_json()
-    acc.save()
-    drive = build('drive', 'v3', http=http)
-    return drive
+def get_client(acc: StorageAccount) -> str:
+    cred = json.loads(acc.credentials)
+    expire_at = parser.parse(cred['e'])
+    delta = (expire_at - datetime.utcnow()).total_seconds()
+    if delta < 60:
+        r = requests.post("https://www.googleapis.com/oauth2/v4/token",
+                          {'client_id': settings.GDRIVE_APP_KEY, 'client_secret': settings.GDRIVE_APP_SECRET,
+                           'refresh_token': cred['r'], 'grant_type': 'refresh_token'})
+        if r.status_code == 200:
+            j = r.json()
+            cred['a'] = j['access_token']
+            cred['e'] = (datetime.utcnow() + timedelta(0, j['expires_in'])).isoformat()
+            acc.credentials = json.dumps(cred)
+            acc.save()
+    return cred['a']
 
 
-def get_space(g: Resource) -> dict:
-    res = g.about().get(fields='storageQuota').execute()
+def get_space(g: str) -> dict:
+    r = requests.get("https://www.googleapis.com/drive/v3/about", params={'fields': 'storageQuota'},
+                     headers={'Authorization': 'Bearer ' + g})
+    res = r.json()
     used = res['storageQuota']['usage']
     total = res['storageQuota']['limit']
     return {'used': used, 'total': total}
 
 
-def find_path_id(g: Resource, path: str) -> str:
+def find_path_id(g: str, path: str) -> str:
     fid = 'root'
     if path == '/':
         return fid
     levels = path.strip('/').split('/')
     try:
         for level in levels:
-            fs = g.files().list(q="'%s' in parents and name='%s' and trashed = false" % (fid, level),
-                                fields="files(id,mimeType)").execute()['files']
+            r = requests.get("https://www.googleapis.com/drive/v3/files",
+                             params={'q': "'%s' in parents and name='%s' and trashed = false" % (fid, level),
+                                     'fields': "files(id,mimeType)"},
+                             headers={'Authorization': 'Bearer ' + g})
+            fs = r.json()['files']
             if len(fs) < 1:
                 return ''
             fid = fs[0]['id']
@@ -74,12 +94,15 @@ def find_path_id(g: Resource, path: str) -> str:
     return fid
 
 
-def get_file_list(g: Resource, path: str) -> list:
+def get_file_list(g: str, path: str) -> list:
     fid = find_path_id(g, path)
     if fid == '':
         return []
-    fs = g.files().list(q="'%s' in parents and trashed = false" % fid,
-                        fields="files(id,mimeType,modifiedTime,name,size)").execute()
+    r = requests.get("https://www.googleapis.com/drive/v3/files",
+                     params={'q': "'%s' in parents and trashed = false" % fid,
+                             'fields': "files(id,mimeType,modifiedTime,name,size)"},
+                     headers={'Authorization': 'Bearer ' + g})
+    fs = r.json()
     ret = []
     try:
         for f in fs['files']:
