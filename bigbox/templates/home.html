@@ -7,7 +7,10 @@
         <div class="col-xs-12">
             {% include 'popupmsg.html' %}
             <ol class="breadcrumb" dir="ltr">
-                <li class="breadcrumb-item"><a href="https://idleberg.com/demo/Bootstrap-Listr-2.3-alpha"><i class="fa fa-fw fa-home fa-lg"></i> </a></li>
+                <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fa fa-fw fa-home fa-lg"></i></a></li>
+                {% for item in dir_list %}
+                    <li class="breadcrumb-item"><a href="{{ item.url }}">{{ item.name }}</a></li>
+                {% endfor %}
             </ol>
         </div>
         <div class="col-xs-2">

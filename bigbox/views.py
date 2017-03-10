@@ -75,6 +75,12 @@ def home(request):
 
 @login_required
 def listview(request, path):
+    dir_list = []
+    dir_base = ''
+    if len(path.strip('/')) > 0:
+        for dir in path.strip('/').split('/'):
+            dir_base += '/' + dir
+            dir_list.append({'name': dir, 'url': dir_base})
     user = request.user
     accs = StorageAccount.objects.filter(user=user)
     files = []
@@ -95,7 +101,7 @@ def listview(request, path):
                 files.append(f)
     files.extend(list(folders.values()))
     fl = sorted(files, key=lambda f: ('d' if f['is_folder'] else 'f') + f['name'].lower())
-    return render(request, 'home.html', {'user': user, 'acc': accs, 'files': fl,
+    return render(request, 'home.html', {'user': user, 'acc': accs, 'files': fl, 'dir_list': dir_list,
                                          'path': path if path[-1] == '/' else path + '/'})
 
 
