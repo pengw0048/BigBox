@@ -95,7 +95,8 @@ def listview(request, path):
                 files.append(f)
     files.extend(list(folders.values()))
     fl = sorted(files, key=lambda f: ('d' if f['is_folder'] else 'f') + f['name'].lower())
-    return render(request, 'home.html', {'user': user, 'acc': accs, 'files': fl})
+    return render(request, 'home.html', {'user': user, 'acc': accs, 'files': fl,
+                                         'path': path if path[-1] == '/' else path + '/'})
 
 
 @transaction.atomic
