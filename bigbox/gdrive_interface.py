@@ -80,7 +80,8 @@ def find_path_id(g: str, path: str) -> str:
     try:
         for level in levels:
             r = requests.get("https://www.googleapis.com/drive/v3/files",
-                             params={'q': "'%s' in parents and name='%s' and trashed = false" % (fid, level),
+                             params={'q': "'%s' in parents and name='%s' and trashed = false"
+                                          % (fid.replace("'", "\\'"), level.replace("'", "\\'")),
                                      'fields': "files(id,mimeType)"},
                              headers={'Authorization': 'Bearer ' + g})
             fs = r.json()['files']
@@ -97,7 +98,7 @@ def get_file_list(g: str, path: str) -> list:
     if fid == '':
         return []
     r = requests.get("https://www.googleapis.com/drive/v3/files",
-                     params={'q': "'%s' in parents and trashed = false" % fid,
+                     params={'q': "'%s' in parents and trashed = false" % fid.replace("'", "\\'"),
                              'fields': "files(id,mimeType,modifiedTime,name,size)"},
                      headers={'Authorization': 'Bearer ' + g})
     fs = r.json()
