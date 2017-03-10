@@ -77,8 +77,12 @@ def get_space(od: onedrivesdk.OneDriveClient) -> dict:
 
 def get_file_list(od: onedrivesdk.OneDriveClient, path: str) -> list:
     ret = []
+    if path == '/':
+        path = "drive/root/children"
+    else:
+        path = "drive/root:" + path + ":/children"
     try:
-        fs = requests.get(settings.ONEDRIVE_BASE_URL + "drive/root/children",
+        fs = requests.get(settings.ONEDRIVE_BASE_URL + path,
                           headers={'Authorization': 'bearer ' + od.auth_provider._session.access_token}).json()
         for f in fs['value']:
             try:

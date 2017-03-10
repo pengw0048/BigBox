@@ -57,8 +57,28 @@ def get_space(g: Resource) -> dict:
     return {'used': used, 'total': total}
 
 
+def find_path_id(g: Resource, path: str) -> str:
+    fid = 'root'
+    if path == '/':
+        return fid
+    levels = path.strip('/').split('/')
+    try:
+        for level in levels:
+            fs = g.files().list(q="'%s' in parents and name='%s' and trashed = false" % (fid, level),
+                                fields="files(id,mimeType)").execute()['files']
+            if len(fs) < 1:
+                return ''
+            fid = fs[0]['id']
+    except:
+        return ''
+    return fid
+
+
 def get_file_list(g: Resource, path: str) -> list:
-    fs = g.files().list(q="'root' in parents and trashed = false",
+    fid = find_path_id(g, path)
+    if fid == '':
+        return []
+    fs = g.files().list(q="'%s' in parents and trashed = false" % fid,
                         fields="files(id,mimeType,modifiedTime,name,size)").execute()
     ret = []
     try:

@@ -70,6 +70,11 @@ your email address and complete the registration of your account:
 
 @login_required
 def home(request):
+    return listview(request, '/')
+
+
+@login_required
+def listview(request, path):
     user = request.user
     accs = StorageAccount.objects.filter(user=user)
     files = []
@@ -77,7 +82,7 @@ def home(request):
     for c in accs:
         module = importlib.import_module('bigbox.'+c.cloud.class_name)
         client = getattr(module, "get_client")(c)
-        fs = getattr(module, "get_file_list")(client, '/')
+        fs = getattr(module, "get_file_list")(client, path)
         for f in fs:
             f['acc'] = c
             f['clouds'] = [c]
