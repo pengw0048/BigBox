@@ -20,7 +20,7 @@ def add_storage_account(request, next_url, cloud):
     elif 'code' in request.GET:
         try:
             credentials = flow.step2_exchange(request.GET['code'])
-            id = credentials.id_token['sub']
+            uid = credentials.id_token['sub']
             r = requests.get("https://www.googleapis.com/drive/v3/about", params={'fields': 'user'},
                              headers={'Authorization': 'Bearer ' + credentials.access_token})
             about = r.json()
@@ -32,10 +32,10 @@ def add_storage_account(request, next_url, cloud):
         except Exception as e:
             messages.error(request, 'An error occurred: ' + str(e))
         else:
-            if StorageAccount.objects.all().filter(identifier=id).exists():
+            if StorageAccount.objects.all().filter(identifier=uid).exists():
                 messages.warning(request, 'This Google Drive space is already linked')
             else:
-                sa = StorageAccount(user=request.user, cloud=cloud, identifier=id, status=1,
+                sa = StorageAccount(user=request.user, cloud=cloud, identifier=uid, status=1,
                                     user_full_name=full_name, email=email,
                                     credentials=json.dumps({'a': access_token, 'r': refresh_token, 'e': expire_at}))
                 sa.save()
