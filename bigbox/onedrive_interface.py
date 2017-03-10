@@ -8,6 +8,7 @@ import requests
 from onedrivesdk.session import Session
 import json
 from time import time
+from dateutil import parser
 
 
 def add_storage_account(request, next_url, cloud):
@@ -75,7 +76,22 @@ def get_space(od: onedrivesdk.OneDriveClient) -> dict:
 
 
 def get_file_list(od: onedrivesdk.OneDriveClient, path: str) -> list:
-    return []
+    ret = []
+    try:
+        fs = requests.get(settings.ONEDRIVE_BASE_URL + "drive/root/children",
+                          headers={'Authorization': 'bearer ' + od.auth_provider._session.access_token}).json()
+        for f in fs['value']:
+            try:
+                if 'file' in f:
+                    ret.append({'name': f['name'], 'id': f['id'], 'size': f['size'],
+                                'time': parser.parse(f['lastModifiedDateTime']), 'is_folder': False})
+                else:
+                    ret.append({'name': f['name'], 'id': f['id'], 'is_folder': True})
+            except:
+                pass
+    except:
+        pass
+    return ret
 
 
 class MySession(Session):
