@@ -2,9 +2,7 @@ from django.http import *
 from django.conf import settings
 from django.contrib import messages
 from oauth2client import client
-from apiclient.discovery import build, Resource
 from .models import *
-import httplib2
 from dateutil import parser
 import json
 from datetime import datetime, timedelta
@@ -23,9 +21,9 @@ def add_storage_account(request, next_url, cloud):
         try:
             credentials = flow.step2_exchange(request.GET['code'])
             id = credentials.id_token['sub']
-            http = credentials.authorize(httplib2.Http())
-            drive = build('drive', 'v3', http=http)
-            about = drive.about().get(fields='user').execute()
+            r = requests.get("https://www.googleapis.com/drive/v3/about", params={'fields': 'user'},
+                             headers={'Authorization': 'Bearer ' + credentials.access_token})
+            about = r.json()
             full_name = about['user']['displayName']
             email = about['user']['emailAddress']
             access_token = credentials.access_token
