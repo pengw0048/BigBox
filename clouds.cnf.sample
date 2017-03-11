@@ -14,4 +14,4 @@ Key: xxx
 Secret: xxx
 Redirect: http://localhost:8000/clouds/add/onedrive
 Base: https://graph.microsoft.com/v1.0/
-Scope: offline_access,Files.ReadWrite,User.Read
+Scope: offline_access Files.ReadWrite User.Read
