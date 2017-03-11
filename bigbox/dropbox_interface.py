@@ -63,3 +63,8 @@ def get_file_list(db: Dropbox, path: str) -> list:
     except:
         pass
     return ret
+
+
+def get_down_link(db: Dropbox, fid: str) -> str:
+    res = db.files_get_temporary_link(fid)
+    return res.link

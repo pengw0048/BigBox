@@ -120,3 +120,15 @@ def get_file_list(g: str, path: str) -> list:
     except:
         raise
     return ret
+
+
+def get_down_link(g: str, fid: str) -> str:
+    r = requests.get("https://www.googleapis.com/drive/v3/files/" + fid, params={'fields': 'webContentLink'},
+                     headers={'Authorization': 'Bearer ' + g})
+    if r.status_code != 200:
+        r.raise_for_status()
+    j = r.json()
+    if 'webContentLink' in j:
+        return j['webContentLink']
+    else:
+        raise Exception('File not found')

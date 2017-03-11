@@ -98,6 +98,17 @@ def get_file_list(od: onedrivesdk.OneDriveClient, path: str) -> list:
     return ret
 
 
+def get_down_link(od: onedrivesdk.OneDriveClient, fid: str) -> str:
+    r = requests.get(settings.ONEDRIVE_BASE_URL + "drive/items/" + fid + '/content',
+                     headers={'Authorization': 'bearer ' + od.auth_provider._session.access_token})
+    if r.status_code < 300 or r.status_code >= 400:
+        r.raise_for_status()
+    if r.url:
+        return r.url
+    else:
+        raise Exception('File not found')
+
+
 class MySession(Session):
     def save_session(self, **save_session_kwargs):
         data = {'token_type': self.token_type, 'scope': ' '.join(self.scope), 'access_token': self.access_token,

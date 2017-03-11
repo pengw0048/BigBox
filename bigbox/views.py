@@ -12,7 +12,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import *
 import importlib
-from django.contrib.humanize import *
+from urllib.parse import quote
 
 
 def login(request):
@@ -90,7 +90,6 @@ def listview(request, path):
         client = getattr(module, "get_client")(c)
         fs = getattr(module, "get_file_list")(client, path)
         for f in fs:
-            f['acc'] = c
             f['clouds'] = [c]
             if f['is_folder']:
                 if f['name'] in folders:
@@ -98,6 +97,8 @@ def listview(request, path):
                 else:
                     folders[f['name']] = f
             else:
+                f['acc'] = c
+                f['id'] = quote(f['id'])
                 files.append(f)
     files.extend(list(folders.values()))
     fl = sorted(files, key=lambda f: ('d' if f['is_folder'] else 'f') + f['name'].lower())
@@ -162,3 +163,19 @@ def color_storage_account(request):
     acc.color = request.POST['value']
     acc.save()
     return JsonResponse({'status': 'ok'})
+
+
+@login_required
+def get_download_link(request):
+    if 'pk' not in request.GET or 'id' not in request.GET:
+        return HttpResponseBadRequest('missing fields')
+    acc = get_object_or_404(StorageAccount, pk=request.GET['pk'])
+    if acc.user != request.user:
+        return HttpResponseForbidden('not your account')
+    module = importlib.import_module('bigbox.'+acc.cloud.class_name)
+    client = getattr(module, "get_client")(acc)
+    try:
+        link = getattr(module, "get_down_link")(client, request.GET['id'])
+        return HttpResponseRedirect(link)
+    except Exception as e:
+        return HttpResponseBadRequest(str(e))
