@@ -6,7 +6,7 @@ Redirect: http://localhost:8000/clouds/add/dropbox
 [Google Drive]
 Key: xxx
 Secret: xxx
-Scope: https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email
+Scope: https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile
 Redirect: http://localhost:8000/clouds/add/gdrive
 
 [Onedrive]
