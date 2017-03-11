@@ -5,7 +5,7 @@ from .models import *
 import requests
 import json
 from dateutil import parser
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
 
@@ -23,7 +23,7 @@ def add_storage_account(request, next_url, cloud):
                                'client_secret': settings.ONEDRIVE_APP_SECRET,
                                'redirect_uri': settings.ONEDRIVE_REDIRECT_URL, 'grant_type': 'authorization_code'})
             credentials = r.json()
-            expire_at = (datetime.utcnow() + timedelta(0, credentials['expires_in'])).isoformat()
+            expire_at = (datetime.now(timezone.utc) + timedelta(0, credentials['expires_in'])).isoformat()
             access_token = credentials['access_token']
             refresh_token = credentials['refresh_token']
             info = get_user_info(access_token)
@@ -58,7 +58,7 @@ def get_user_info(access_token):
 def get_client(acc: StorageAccount) -> str:
     cred = json.loads(acc.credentials)
     expire_at = parser.parse(cred['e'])
-    delta = (expire_at - datetime.utcnow()).total_seconds()
+    delta = (expire_at - datetime.now(timezone.utc)).total_seconds()
     if delta < 60:
         r = requests.post("https://login.microsoftonline.com/common/oauth2/v2.0/token",
                           {'client_id': settings.ONEDRIVE_APP_KEY, 'client_secret': settings.ONEDRIVE_APP_SECRET,
@@ -69,7 +69,7 @@ def get_client(acc: StorageAccount) -> str:
             cred['a'] = j['access_token']
             if 'refresh_token' in j:
                 cred['r'] = j['refresh_token']
-            cred['e'] = (datetime.utcnow() + timedelta(0, j['expires_in'])).isoformat()
+            cred['e'] = (datetime.now(timezone.utc) + timedelta(0, j['expires_in'])).isoformat()
             acc.credentials = json.dumps(cred)
             acc.save()
     return cred['a']

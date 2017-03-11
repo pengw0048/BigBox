@@ -4,7 +4,7 @@ from django.contrib import messages
 from .models import *
 from dateutil import parser
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
 from urllib.parse import urlencode
 
@@ -21,7 +21,7 @@ def add_storage_account(request, next_url, cloud):
                                'client_secret': settings.GDRIVE_APP_SECRET,
                                'redirect_uri': settings.GDRIVE_REDIRECT_URL, 'grant_type': 'authorization_code'})
             credentials = r.json()
-            expire_at = (datetime.utcnow() + timedelta(0, credentials['expires_in'])).isoformat()
+            expire_at = (datetime.now(timezone.utc) + timedelta(0, credentials['expires_in'])).isoformat()
             access_token = credentials['access_token']
             refresh_token = credentials['refresh_token']
             r = requests.get("https://www.googleapis.com/oauth2/v3/userinfo",
@@ -53,7 +53,7 @@ def add_storage_account(request, next_url, cloud):
 def get_client(acc: StorageAccount) -> str:
     cred = json.loads(acc.credentials)
     expire_at = parser.parse(cred['e'])
-    delta = (expire_at - datetime.utcnow()).total_seconds()
+    delta = (expire_at - datetime.now(timezone.utc)).total_seconds()
     if delta < 60:
         r = requests.post("https://www.googleapis.com/oauth2/v4/token",
                           {'client_id': settings.GDRIVE_APP_KEY, 'client_secret': settings.GDRIVE_APP_SECRET,
@@ -61,7 +61,7 @@ def get_client(acc: StorageAccount) -> str:
         if r.status_code == 200:
             j = r.json()
             cred['a'] = j['access_token']
-            cred['e'] = (datetime.utcnow() + timedelta(0, j['expires_in'])).isoformat()
+            cred['e'] = (datetime.now(timezone.utc) + timedelta(0, j['expires_in'])).isoformat()
             acc.credentials = json.dumps(cred)
             acc.save()
     return cred['a']
