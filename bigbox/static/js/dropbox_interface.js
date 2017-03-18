@@ -19,7 +19,7 @@ function ci_start(uploader, done){
         },
         success: function(data) {
             uploader.session_id = data.session_id;
-            done(uploader);
+            done();
         }
     });
 }
@@ -57,7 +57,7 @@ function ci_finish(uploader, done){
             withCredentials: false
         },
         success: function(data) {
-            done(uploader);
+            done();
         }
     });
 }

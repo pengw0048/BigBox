@@ -35,8 +35,7 @@ $(document).ready(function() {
             uploaders.push(new ChunkedUploader(file));
             file_list.append('<tr><td><p class="name">'+file.name+'</p></td><td style="width:100%"><p class="size">'+file.size.formatBytes()+'</p>'
                 + '<div class="progress progress-striped active"><div class="progress-bar progress-bar-success" style="width:0"></div></div></td>'
-                + '<td style="white-space:nowrap"><button class="btn btn-primary start"><i class="glyphicon glyphicon-upload"></i><span>Start</span></button>'
-                + '<button class="btn btn-warning cancel"><i class="glyphicon glyphicon-ban-circle"></i><span>Cancel</span></button></td></tr>');
+                + '</tr>');
         }
     }
     function onFormSubmit(e) {
@@ -63,14 +62,14 @@ function ChunkedUploader(file) {
     this.upload_request.onload = this._onChunkComplete.bind(this);
 }
 ChunkedUploader.prototype = {
-    _upload: function(self) {
+    _upload: function() {
         var chunk;
-        if (self.range_end > self.file_size) {
-            self.range_end = self.file_size;
+        if (this.range_end > this.file_size) {
+            this.range_end = this.file_size;
         }
-        chunk = self.file[self.slice_method](self.range_start, self.range_end);
-        ci_prepare_chunk(self, chunk);
-        self.upload_request.send(chunk);
+        chunk = this.file[this.slice_method](this.range_start, this.range_end);
+        ci_prepare_chunk(this, chunk);
+        this.upload_request.send(chunk);
     },
     _onChunkComplete: function() {
         if (this.range_end === this.file_size) {
@@ -79,15 +78,15 @@ ChunkedUploader.prototype = {
         }
         this.range_start = this.range_end;
         this.range_end = this.range_start + this.chunk_size;
-        this._upload(this);
+        this._upload();
     },
     _onUploadComplete: function() {
-        ci_finish(this, this._onDone);
+        ci_finish(this, this._onDone.bind(this));
     },
-    _onDone: function(self) {
-        console.log(self.file_name+" done");
+    _onDone: function() {
+        console.log(this.file_name+" done");
     },
     start: function() {
-        ci_start(this, this._upload);
+        ci_start(this, this._upload.bind(this));
     }
 };
