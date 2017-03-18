@@ -113,7 +113,7 @@ def get_file_list(g: str, path: str) -> list:
                 if f['mimeType'] == 'application/vnd.google-apps.folder':
                     ret.append({'name': f['name'], 'id': f['id'], 'is_folder': True})
                 else:
-                    ret.append({'name': f['name'], 'id': f['id'], 'size': f['size'],
+                    ret.append({'name': f['name'], 'id': f['id'], 'size': f.get('size', 0),
                                 'time': parser.parse(f['modifiedTime']), 'is_folder': False})
             except:
                 raise
@@ -123,12 +123,15 @@ def get_file_list(g: str, path: str) -> list:
 
 
 def get_down_link(g: str, fid: str) -> str:
-    r = requests.get("https://www.googleapis.com/drive/v3/files/" + fid, params={'fields': 'webContentLink'},
+    r = requests.get("https://www.googleapis.com/drive/v3/files/" + fid,
+                     params={'fields': 'webContentLink,webViewLink'},
                      headers={'Authorization': 'Bearer ' + g})
     if r.status_code != 200:
         r.raise_for_status()
     j = r.json()
     if 'webContentLink' in j:
         return j['webContentLink']
+    elif 'webViewLink' in j:
+        return j['webViewLink']
     else:
         raise Exception('File not found')
