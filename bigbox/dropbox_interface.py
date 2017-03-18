@@ -68,3 +68,7 @@ def get_file_list(db: Dropbox, path: str) -> list:
 def get_down_link(db: Dropbox, fid: str) -> str:
     res = db.files_get_temporary_link(fid)
     return res.link
+
+
+def get_upload_creds(db: Dropbox) -> dict:
+    return {'token': db._oauth2_access_token}

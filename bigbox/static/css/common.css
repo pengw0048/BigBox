@@ -59,7 +59,7 @@ h1 {
 }
 .progress {
     position: relative;
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 .progress span {
     position: absolute;
@@ -72,7 +72,7 @@ h1 {
     text-shadow: 1px 1px #ddd;
 }
 .files-left-nav {
-    margin-top: 2.5em;
+    margin-top: 0.5em;
     width: 100%;
 }
 .color-icon {

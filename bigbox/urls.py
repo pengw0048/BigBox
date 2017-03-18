@@ -16,4 +16,5 @@ urlpatterns = [
     url(r'^clouds/rename/?$', views.rename_storage_account, name='cloud-rename'),
     url(r'^clouds/color/?$', views.color_storage_account, name='cloud-color'),
     url(r'^get-down/?$', views.get_download_link, name='get-download'),
+    url(r'^get-up-creds/?$', views.get_upload_creds, name='get-upload-creds'),
 ]

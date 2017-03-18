@@ -180,3 +180,16 @@ def get_download_link(request):
         return HttpResponseRedirect(link)
     except Exception as e:
         return HttpResponseBadRequest(str(e))
+
+
+@login_required
+def get_upload_creds(request):
+    if 'pk' not in request.GET:
+        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
+    acc = get_object_or_404(StorageAccount, pk=request.GET['pk'])
+    if acc.user != request.user:
+        return JsonResponse({'status': 'error', 'msg': 'not your account'})
+    module = importlib.import_module('bigbox.'+acc.cloud.class_name)
+    client = getattr(module, "get_client")(acc)
+    creds = getattr(module, "get_upload_creds")(client)
+    return JsonResponse(creds)
