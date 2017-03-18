@@ -9,7 +9,7 @@
             <ol class="breadcrumb" dir="ltr">
                 <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fa fa-fw fa-home fa-lg"></i></a></li>
                 {% for item in dir_list %}
-                    <li class="breadcrumb-item"><a href="{{ item.url }}">{{ item.name }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'list' item.url %}">{{ item.name }}</a></li>
                 {% endfor %}
             </ol>
         </div>
