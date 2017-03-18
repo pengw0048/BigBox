@@ -27,8 +27,8 @@
                         <div class="clearfix"></div>
                         <p>Owner: {{ c.user_full_name }} <span class="text-muted">({{ c.email }})</span></p>
                         <div class="progress">
-                            <div class="progress-bar" role="progressbar" aria-valuenow="{{ c.space.percent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ c.space.percent }}%">
-                                <span>{{ c.space.used|filesizeformat }}/{{ c.space.total|filesizeformat }}</span>
+                            <div class="progress-bar" style="width: {{ c.space.percent }}%">
+                                <span>{{ c.space.used|filesizeformat }}/{% if c.space.total %}{{ c.space.total|filesizeformat }}{% else %}--{% endif %}</span>
                             </div>
                         </div>
                     </div>
@@ -40,7 +40,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                     <h4 class="modal-title">Choose your cloud</h4>
                 </div>
                 <div class="modal-body">

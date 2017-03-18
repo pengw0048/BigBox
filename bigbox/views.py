@@ -127,7 +127,8 @@ def storage_accounts(request):
         module = importlib.import_module('bigbox.'+acc.cloud.class_name)
         client = getattr(module, "get_client")(acc)
         acc.space = getattr(module, "get_space")(client)
-        acc.space['percent'] = float(acc.space['used']) * 100.0 / float(acc.space['total'])
+        acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
+                                else 0)
         account_info.append(acc)
     return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds})
 

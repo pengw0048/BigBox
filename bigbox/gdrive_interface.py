@@ -72,7 +72,7 @@ def get_space(g: str) -> dict:
                      headers={'Authorization': 'Bearer ' + g})
     res = r.json()
     used = res['storageQuota']['usage']
-    total = res['storageQuota']['limit']
+    total = res['storageQuota'].get('limit', None)
     return {'used': used, 'total': total}
 
 
