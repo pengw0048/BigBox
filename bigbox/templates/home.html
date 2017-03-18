@@ -86,7 +86,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="upload-dialog" tabindex="-1" >
+    <div class="modal fade" id="upload-dialog" tabindex="-1" data-keyboard="false" data-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -97,18 +97,18 @@
                     <form id="upload-form">
                         <div class="row fileupload-buttonbar">
                             <div class="col-xs-7">
-                                <span class="btn btn-success fileinput-button">
+                                <span class="btn btn-success fileinput-button" id="upload-add">
                                     <i class="glyphicon glyphicon-plus"></i>
                                     <span>Add</span>
                                     <input type="file" id="file-input" multiple>
                                 </span>
-                                <button type="submit" class="btn btn-primary start">
+                                <button type="submit" class="btn btn-primary" id="upload-start">
                                     <i class="glyphicon glyphicon-upload"></i>
                                     <span>Start</span>
                                 </button>
-                                <button type="reset" class="btn btn-warning cancel">
+                                <button type="reset" class="btn btn-warning" id="upload-clear">
                                     <i class="glyphicon glyphicon-ban-circle"></i>
-                                    <span>Cancel</span>
+                                    <span>Clear</span>
                                 </button>
                             </div>
                             <div class="col-xs-5 fileupload-progress fade">

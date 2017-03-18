@@ -19,31 +19,42 @@ $(document).on("click", ".upload-to-cloud", function () {
     $("#upload-dialog").modal();
 });
 $(document).ready(function() {
-    var upload_form = $('#upload-form'),
-        file_input = $('#file-input'),
-        file_list = $('#file-list');
     $('#upload-dialog').on('show.bs.modal', function (e) {
         uploaders = [];
-        file_list.empty();
+        $('#file-input').prop('disabled', false);
+        $('#upload-add').prop('disabled', false);
+        $('#upload-start').prop('disabled', true);
+        $('#upload-clear').prop('disabled', true);
+        $('#file-list').empty();
     });
-    file_input.on('change', onFilesSelected);
-    upload_form.on('submit', onFormSubmit);
-    function onFilesSelected(e) {
+    $('#file-input').on('change', function(e){
         var files = e.target.files, file;
         for (var i = 0; i < files.length; i++) {
             file = files[i];
             uploaders.push(new ChunkedUploader(file));
-            file_list.append('<tr><td><p class="name">'+file.name+'</p></td><td style="width:100%"><p class="size">'+file.size.formatBytes()+'</p>'
+            $('#file-list').append('<tr><td><p class="name">'+file.name+'</p></td><td style="width:100%"><p class="size">'+file.size.formatBytes()+'</p>'
                 + '<div class="progress progress-striped active"><div class="progress-bar progress-bar-success" style="width:0"></div></div></td>'
                 + '</tr>');
         }
-    }
-    function onFormSubmit(e) {
+        $('#upload-start').prop('disabled', uploaders.length == 0);
+        $('#upload-clear').prop('disabled', uploaders.length == 0);
+    });
+    $('#upload-form').on('submit', function (e) {
+        $('#file-input').prop('disabled', true);
+        $('#upload-add').prop('disabled', true);
+        $('#upload-start').prop('disabled', true);
+        $('#upload-clear').prop('disabled', true);
         $.each(uploaders, function(i, uploader) {
             uploader.start();
         });
         e.preventDefault();
-    }
+    });
+    $('#upload-clear').on('click', function () {
+        $('#upload-start').prop('disabled', true);
+        $('#upload-clear').prop('disabled', true);
+        $('#file-list').empty();
+        uploaders = [];
+    });
 });
 function ChunkedUploader(file) {
     if (!this instanceof ChunkedUploader) {
