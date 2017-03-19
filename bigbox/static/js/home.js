@@ -4,6 +4,8 @@ $(document).on("click", ".upload-to-cloud", function () {
     var pk = self.data("pk");
     var dname = self.text();
     var classname = self.data("classname");
+    $("#upload-form").hide();
+    $("#upload-loader").show();
     $.ajax({
         url: "get-up-creds",
         data: {"pk": pk},
@@ -11,7 +13,10 @@ $(document).on("click", ".upload-to-cloud", function () {
         dataType: "json",
         success: function (data) {
             $.getScript("static/js/" + classname + ".js", function () {
-                ci_init(data);
+                ci_init(data, function(){
+                    $("#upload-form").show();
+                    $("#upload-loader").hide();
+                });
             });
         }
     });

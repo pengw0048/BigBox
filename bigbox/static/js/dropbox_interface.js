@@ -1,6 +1,7 @@
-function ci_init(data){
+function ci_init(data, done){
     db_token = "Bearer " + data.token;
-    console.log("dropbox init success")
+    console.log("dropbox init success");
+    done();
 }
 function ci_chunk_size(file_size){
     return 1*1024*1024;
