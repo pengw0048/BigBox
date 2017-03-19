@@ -20,6 +20,9 @@ function ci_start(uploader, done){
         success: function(data) {
             uploader.session_id = data.session_id;
             done();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            uploader.fail(textStatus + ': ' + errorThrown);
         }
     });
 }
@@ -58,6 +61,9 @@ function ci_finish(uploader, done){
         },
         success: function(data) {
             done();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            uploader.fail(textStatus + ': ' + errorThrown);
         }
     });
 }

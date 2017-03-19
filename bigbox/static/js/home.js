@@ -74,6 +74,7 @@ function ChunkedUploader(file, progress_bar) {
     this.upload_request = new XMLHttpRequest();
     this.upload_request.addEventListener("load", this._onChunkComplete.bind(this), false);
     this.upload_request.addEventListener("progress", this._onProgress.bind(this), false);
+    this.upload_request.addEventListener("error", this._onError.bind(this), false);
 }
 ChunkedUploader.prototype = {
     _upload: function() {
@@ -104,6 +105,9 @@ ChunkedUploader.prototype = {
     _onUploadComplete: function() {
         ci_finish(this, this._onDone.bind(this));
     },
+    _onError: function() {
+        this.fail('Error during upload');
+    },
     _onDone: function() {
         this.progress_bar.css('width', '100%');
         this.progress_bar.removeClass('progress-bar-info');
@@ -112,5 +116,9 @@ ChunkedUploader.prototype = {
     },
     start: function() {
         ci_start(this, this._upload.bind(this));
+    },
+    fail: function(text) {
+        this.progress_bar.css('width', '0');
+        this.progress_bar.children('span').text(text).css('color', 'red').css('text-shadow', '1px 1px white');
     }
 };
