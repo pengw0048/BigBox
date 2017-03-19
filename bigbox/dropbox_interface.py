@@ -4,6 +4,7 @@ from django.contrib import messages
 from dropbox.oauth import *
 from dropbox.dropbox import *
 from .models import *
+from pytz import timezone
 
 
 def get_dropbox_auth_flow(web_app_session):
@@ -55,7 +56,7 @@ def get_file_list(db: Dropbox, path: str) -> list:
             try:
                 if hasattr(f, 'size'):
                     ret.append({'name': f.name, 'id': f.path_lower, 'size': f.size,
-                                'time': f.client_modified, 'is_folder': False})
+                                'time': f.client_modified.replace(tzinfo=timezone('UTC')), 'is_folder': False})
                 else:
                     ret.append({'name': f.name, 'id': f.path_lower, 'is_folder': True})
             except:
