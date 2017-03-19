@@ -21,8 +21,8 @@ $(document).on("click", ".upload-to-cloud", function () {
 $(document).ready(function() {
     $('#upload-dialog').on('show.bs.modal', function (e) {
         uploaders = [];
-        $('#file-input').prop('disabled', false);
-        $('#upload-add').prop('disabled', false);
+        $('#file-input').prop('disabled', false).val('');
+        $('#upload-add').removeClass('disabled');
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
         $('#file-list').empty();
@@ -31,17 +31,18 @@ $(document).ready(function() {
         var files = e.target.files, file;
         for (var i = 0; i < files.length; i++) {
             file = files[i];
-            uploaders.push(new ChunkedUploader(file));
-            $('#file-list').append('<tr><td><p class="name">'+file.name+'</p></td><td style="width:100%"><p class="size">'+file.size.formatBytes()+'</p>'
-                + '<div class="progress progress-striped active"><div class="progress-bar progress-bar-success" style="width:0"></div></div></td>'
+            $('#file-list').append('<tr><td><div class="name">'+file.name+'</div></td><td style="width:100%">'
+                + '<div class="progress active"><div class="progress-bar progress-bar-info" style="width:0"><span>'
+                + file.size.formatBytes() + '</span></div></div></td>'
                 + '</tr>');
+            uploaders.push(new ChunkedUploader(file, $('.progress-bar').last()));
         }
         $('#upload-start').prop('disabled', uploaders.length == 0);
         $('#upload-clear').prop('disabled', uploaders.length == 0);
     });
     $('#upload-form').on('submit', function (e) {
         $('#file-input').prop('disabled', true);
-        $('#upload-add').prop('disabled', true);
+        $('#upload-add').addClass('disabled');
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
         $.each(uploaders, function(i, uploader) {
@@ -56,11 +57,12 @@ $(document).ready(function() {
         uploaders = [];
     });
 });
-function ChunkedUploader(file) {
+function ChunkedUploader(file, progress_bar) {
     if (!this instanceof ChunkedUploader) {
         return new ChunkedUploader(file, options);
     }
     this.file = file;
+    this.progress_bar = progress_bar;
     this.file_size = this.file.size;
     this.file_name = this.file.name;
     this.chunk_size = ci_chunk_size(this.file_size);
@@ -70,7 +72,8 @@ function ChunkedUploader(file) {
     else if ('webkitSlice' in this.file) this.slice_method = 'webkitSlice';
     else this.slice_method = 'slice';
     this.upload_request = new XMLHttpRequest();
-    this.upload_request.onload = this._onChunkComplete.bind(this);
+    this.upload_request.addEventListener("load", this._onChunkComplete.bind(this), false);
+    this.upload_request.addEventListener("progress", this._onProgress.bind(this), false);
 }
 ChunkedUploader.prototype = {
     _upload: function() {
@@ -81,6 +84,13 @@ ChunkedUploader.prototype = {
         chunk = this.file[this.slice_method](this.range_start, this.range_end);
         ci_prepare_chunk(this, chunk);
         this.upload_request.send(chunk);
+    },
+    _onProgress: function(evt) {
+        var real_total = evt.loaded + this.range_start;
+        this.progress_bar.css('width', (this.file_size == 0 ? 100 : real_total * 100.0 / this.file_size) + '%');
+        this.progress_bar.children('span').text(real_total.formatBytes() + '/' + this.file_size.formatBytes());
+        if (real_total * 100.0 / this.file_size >= 50.0)
+            this.progress_bar.children('span').css('color', 'white').css('text-shadow', '1px 1px black');
     },
     _onChunkComplete: function() {
         if (this.range_end === this.file_size) {
@@ -95,7 +105,10 @@ ChunkedUploader.prototype = {
         ci_finish(this, this._onDone.bind(this));
     },
     _onDone: function() {
-        console.log(this.file_name+" done");
+        this.progress_bar.css('width', '100%');
+        this.progress_bar.removeClass('progress-bar-info');
+        this.progress_bar.addClass('progress-bar-success');
+        this.progress_bar.children('span').text('Done!').css('color', 'white').css('text-shadow', '1px 1px black');
     },
     start: function() {
         ci_start(this, this._upload.bind(this));
