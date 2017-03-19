@@ -7,12 +7,12 @@ $(document).on("click", ".upload-to-cloud", function () {
     $("#upload-form").hide();
     $("#upload-loader").show();
     $.ajax({
-        url: "get-up-creds",
+        url: "/get-up-creds",
         data: {"pk": pk},
         method: "GET",
         dataType: "json",
         success: function (data) {
-            $.getScript("static/js/" + classname + ".js", function () {
+            $.getScript("/static/js/" + classname + ".js", function () {
                 ci_init(data, function(){
                     $("#upload-form").show();
                     $("#upload-loader").hide();
