@@ -18,7 +18,7 @@ def add_storage_account(request, next_url, cloud):
         return HttpResponseRedirect(next_url)
     elif 'code' in request.GET:
         try:
-            r = requests.post("https://login.microsoftonline.com/common/oauth2/v2.0/token",
+            r = requests.post('https://login.microsoftonline.com/common/oauth2/v2.0/token',
                               {'code': request.GET['code'], 'client_id': settings.ONEDRIVE_APP_KEY,
                                'client_secret': settings.ONEDRIVE_APP_SECRET,
                                'redirect_uri': settings.ONEDRIVE_REDIRECT_URL, 'grant_type': 'authorization_code'})
@@ -51,7 +51,7 @@ def add_storage_account(request, next_url, cloud):
 
 
 def get_user_info(access_token):
-    r = requests.get(settings.ONEDRIVE_BASE_URL + "users/me", headers={'Authorization': 'Bearer ' + access_token})
+    r = requests.get(settings.ONEDRIVE_BASE_URL + 'users/me', headers={'Authorization': 'Bearer ' + access_token})
     return r.json()
 
 
@@ -60,7 +60,7 @@ def get_client(acc: StorageAccount) -> str:
     expire_at = parser.parse(cred['e'])
     delta = (expire_at - datetime.now(timezone.utc)).total_seconds()
     if delta < 60:
-        r = requests.post("https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        r = requests.post('https://login.microsoftonline.com/common/oauth2/v2.0/token',
                           {'client_id': settings.ONEDRIVE_APP_KEY, 'client_secret': settings.ONEDRIVE_APP_SECRET,
                            'refresh_token': cred['r'], 'grant_type': 'refresh_token',
                            'redirect_uri': settings.ONEDRIVE_REDIRECT_URL})
@@ -76,7 +76,7 @@ def get_client(acc: StorageAccount) -> str:
 
 
 def get_space(od: str) -> dict:
-    r = requests.get(settings.ONEDRIVE_BASE_URL + "me/drive",
+    r = requests.get(settings.ONEDRIVE_BASE_URL + 'me/drive',
                      headers={'Authorization': 'bearer ' + od}).json()
     used = r['quota']['used']
     total = r['quota']['total']
@@ -87,9 +87,9 @@ def get_file_list(od: str, path: str) -> tuple:
     ret = []
     opath = path
     if path == '/':
-        path = "drive/root/children"
+        path = 'drive/root/children'
     else:
-        path = "drive/root:" + path + ":/children"
+        path = 'drive/root:' + path + ':/children'
     try:
         fs = requests.get(settings.ONEDRIVE_BASE_URL + path,
                           headers={'Authorization': 'bearer ' + od}).json()
@@ -108,7 +108,7 @@ def get_file_list(od: str, path: str) -> tuple:
 
 
 def get_down_link(od: str, fid: str) -> str:
-    r = requests.get(settings.ONEDRIVE_BASE_URL + "drive/items/" + fid + '/content',
+    r = requests.get(settings.ONEDRIVE_BASE_URL + 'drive/items/' + fid + '/content',
                      headers={'Authorization': 'bearer ' + od})
     if r.status_code < 300 or r.status_code >= 400:
         r.raise_for_status()
@@ -116,3 +116,16 @@ def get_down_link(od: str, fid: str) -> str:
         return r.url
     else:
         raise Exception('File not found')
+
+
+def get_upload_creds(od: str, data: str) -> dict:
+    try:
+        j = json.loads(data)
+        path = j['path']
+        name = j['name']
+    except:
+        return {}
+    full_path = path.strip('/') + '/' + name
+    r = requests.post(settings.ONEDRIVE_BASE_URL + 'drive/root:/' + full_path + ':/createUploadSession',
+                      headers={'Authorization': 'bearer ' + od})
+    return {'url': r.json()['uploadUrl']}
