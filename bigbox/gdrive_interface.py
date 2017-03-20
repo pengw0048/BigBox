@@ -177,6 +177,5 @@ def get_upload_creds(g: str, data: str) -> dict:
                           headers={'Authorization': 'Bearer ' + g})
     else:
         r = requests.patch('https://www.googleapis.com/upload/drive/v3/files/%s?uploadType=resumable' % fs[0]['id'],
-                           json={'parents': [parent], 'name': name},
                            headers={'Authorization': 'Bearer ' + g})
     return {'url': r.headers['Location']}
