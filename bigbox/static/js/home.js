@@ -43,6 +43,7 @@ $(document).ready(function() {
                 + '</tr>');
             uploaders.push(new ChunkedUploader(file, $('.progress-bar').last()));
         }
+        $('#file-input').val('');
         $('#upload-start').prop('disabled', uploaders.length == 0);
         $('#upload-clear').prop('disabled', uploaders.length == 0);
     });
