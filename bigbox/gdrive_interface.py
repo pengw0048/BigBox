@@ -16,7 +16,7 @@ def add_storage_account(request, next_url, cloud):
         return HttpResponseRedirect(next_url)
     elif 'code' in request.GET:
         try:
-            r = requests.post("https://www.googleapis.com/oauth2/v4/token",
+            r = requests.post('https://www.googleapis.com/oauth2/v4/token',
                               {'code': request.GET['code'], 'client_id': settings.GDRIVE_APP_KEY,
                                'client_secret': settings.GDRIVE_APP_SECRET,
                                'redirect_uri': settings.GDRIVE_REDIRECT_URL, 'grant_type': 'authorization_code'})
@@ -55,7 +55,7 @@ def get_client(acc: StorageAccount) -> str:
     expire_at = parser.parse(cred['e'])
     delta = (expire_at - datetime.now(timezone.utc)).total_seconds()
     if delta < 60:
-        r = requests.post("https://www.googleapis.com/oauth2/v4/token",
+        r = requests.post('https://www.googleapis.com/oauth2/v4/token',
                           {'client_id': settings.GDRIVE_APP_KEY, 'client_secret': settings.GDRIVE_APP_SECRET,
                            'refresh_token': cred['r'], 'grant_type': 'refresh_token'})
         if r.status_code == 200:
@@ -76,7 +76,7 @@ def get_space(g: str) -> dict:
     return {'used': used, 'total': total}
 
 
-def find_path_id(g: str, path: str) -> str:
+def find_path_id(g: str, path: str, create: bool = False) -> str:
     fid = 'root'
     if path == '/':
         return fid
@@ -84,26 +84,46 @@ def find_path_id(g: str, path: str) -> str:
     try:
         for level in levels:
             r = requests.get("https://www.googleapis.com/drive/v3/files",
-                             params={'q': "'%s' in parents and name='%s' and trashed = false"
+                             params={'q': "'%s' in parents and name='%s' and trashed=false and "
+                                          "mimeType='application/vnd.google-apps.folder'"
                                           % (fid.replace("'", "\\'"), level.replace("'", "\\'")),
                                      'fields': "files(id,mimeType)"},
                              headers={'Authorization': 'Bearer ' + g})
             fs = r.json()['files']
             if len(fs) < 1:
-                return ''
-            fid = fs[0]['id']
+                if create:
+                    fid = create_folder_with_parent_id(g, fid, level)
+                else:
+                    return ''
+            else:
+                fid = fs[0]['id']
     except:
         return ''
     return fid
 
 
+def create_folder(g: str, path: str) -> dict:
+    if path == 'root':
+        return {'id': 'root'}
+    return {'id': find_path_id(g, path, True)}
+
+
+def create_folder_with_parent_id(g: str, parent: str, name: str) -> str:
+    r = requests.post('https://www.googleapis.com/drive/v3/files',
+                      json={'mimeType': 'application/vnd.google-apps.folder',
+                            'parents': [parent],
+                            'name': name},
+                      headers={'Authorization': 'Bearer ' + g})
+    return r.json()['id']
+
+
 def get_file_list(g: str, path: str) -> tuple:
     fid = find_path_id(g, path)
     if fid == '':
-        return [], ''
-    r = requests.get("https://www.googleapis.com/drive/v3/files",
+        return [], path
+    r = requests.get('https://www.googleapis.com/drive/v3/files',
                      params={'q': "'%s' in parents and trashed = false" % fid.replace("'", "\\'"),
-                             'fields': "files(id,mimeType,modifiedTime,name,size)"},
+                             'fields': 'files(id,mimeType,modifiedTime,name,size)'},
                      headers={'Authorization': 'Bearer ' + g})
     fs = r.json()
     ret = []
@@ -123,7 +143,7 @@ def get_file_list(g: str, path: str) -> tuple:
 
 
 def get_down_link(g: str, fid: str) -> str:
-    r = requests.get("https://www.googleapis.com/drive/v3/files/" + fid,
+    r = requests.get('https://www.googleapis.com/drive/v3/files/' + fid,
                      params={'fields': 'webContentLink,webViewLink'},
                      headers={'Authorization': 'Bearer ' + g})
     if r.status_code != 200:
@@ -140,8 +160,23 @@ def get_down_link(g: str, fid: str) -> str:
 def get_upload_creds(g: str, data: str) -> dict:
     try:
         j = json.loads(data)
-        meta = j['meta']
-        path = j['path']
+        parent = j['parent']
+        name = j['name']
     except:
         return {}
-
+    r = requests.get('https://www.googleapis.com/drive/v3/files',
+                     params={'q': "'%s' in parents and name='%s' and trashed=false and "
+                                  "mimeType!='application/vnd.google-apps.folder'"
+                                  % (parent.replace("'", "\\'"), name.replace("'", "\\'")),
+                             'fields': 'files(id)'},
+                     headers={'Authorization': 'Bearer ' + g})
+    fs = r.json()['files']
+    if len(fs) < 1:
+        r = requests.post('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
+                          json={'parents': [parent], 'name': name},
+                          headers={'Authorization': 'Bearer ' + g})
+    else:
+        r = requests.patch('https://www.googleapis.com/upload/drive/v3/files/%s?uploadType=resumable' % fs[0]['id'],
+                           json={'parents': [parent], 'name': name},
+                           headers={'Authorization': 'Bearer ' + g})
+    return {'url': r.headers['Location']}

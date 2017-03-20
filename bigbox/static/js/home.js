@@ -14,7 +14,7 @@ $(document).on("click", ".upload-to-cloud", function () {
         dataType: "json",
         success: function (data) {
             $.getScript("/static/js/" + classname + ".js", function () {
-                ci_init(data, function(){
+                ci_init(data, path, pk, function(){
                     $("#upload-form").show();
                     $("#upload-loader").hide();
                 });
@@ -113,6 +113,10 @@ ChunkedUploader.prototype = {
         ci_finish(this, this._onDone.bind(this));
     },
     _onError: function() {
+        if (this.ignore_failure) {
+            this._onChunkComplete();
+            return;
+        }
         this.fail('Error during upload');
     },
     _onDone: function() {

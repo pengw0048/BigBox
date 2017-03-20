@@ -1,4 +1,4 @@
-function ci_init(data, done){
+function ci_init(data, path, pk, done){
     db_token = "Bearer " + data.token;
     console.log("dropbox init success");
     done();
