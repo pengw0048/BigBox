@@ -13,7 +13,7 @@ function ci_init(data, path, pk, done){
         error: function(jqXHR, textStatus, errorThrown) {
             console.log(textStatus + ': ' + errorThrown);
         }
-    })
+    });
 }
 function ci_chunk_size(file_size){
     return 1*1024*1024;

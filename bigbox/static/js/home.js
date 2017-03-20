@@ -95,9 +95,12 @@ ChunkedUploader.prototype = {
     },
     _onProgress: function(evt) {
         var real_total = evt.loaded + this.range_start;
-        this.progress_bar.css('width', (this.file_size == 0 ? 100 : real_total * 100.0 / this.file_size) + '%');
-        this.progress_bar.children('span').text(real_total.formatBytes() + '/' + this.file_size.formatBytes());
-        if (real_total * 100.0 / this.file_size >= 50.0)
+        this._updateProgressBar(real_total);
+    },
+    _updateProgressBar: function(total) {
+        this.progress_bar.css('width', (this.file_size == 0 ? 100 : total * 100.0 / this.file_size) + '%');
+        this.progress_bar.children('span').text(total.formatBytes() + '/' + this.file_size.formatBytes());
+        if (total * 100.0 / this.file_size >= 50.0)
             this.progress_bar.children('span').css('color', 'white').css('text-shadow', '1px 1px black');
     },
     _onChunkComplete: function() {
@@ -105,6 +108,7 @@ ChunkedUploader.prototype = {
             this._onUploadComplete();
             return;
         }
+        this._updateProgressBar(this.range_end);
         this.range_start = this.range_end;
         this.range_end = this.range_start + this.chunk_size;
         this._upload();
@@ -114,6 +118,7 @@ ChunkedUploader.prototype = {
     },
     _onError: function() {
         if (this.ignore_failure) {
+            this._updateProgressBar(this.range_end);
             this._onChunkComplete();
             return;
         }
