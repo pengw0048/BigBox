@@ -32,6 +32,8 @@ $(document).ready(function() {
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
         $('#file-list').empty();
+    }).on('hidden.bs.modal', function (e) {
+        location.reload(true);
     });
     $('#file-input').on('change', function(e){
         var files = e.target.files, file;
