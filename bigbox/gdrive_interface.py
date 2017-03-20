@@ -97,10 +97,10 @@ def find_path_id(g: str, path: str) -> str:
     return fid
 
 
-def get_file_list(g: str, path: str) -> list:
+def get_file_list(g: str, path: str) -> tuple:
     fid = find_path_id(g, path)
     if fid == '':
-        return []
+        return [], ''
     r = requests.get("https://www.googleapis.com/drive/v3/files",
                      params={'q': "'%s' in parents and trashed = false" % fid.replace("'", "\\'"),
                              'fields': "files(id,mimeType,modifiedTime,name,size)"},
@@ -119,7 +119,7 @@ def get_file_list(g: str, path: str) -> list:
                 raise
     except:
         raise
-    return ret
+    return ret, fid
 
 
 def get_down_link(g: str, fid: str) -> str:
@@ -135,3 +135,13 @@ def get_down_link(g: str, fid: str) -> str:
         return j['webViewLink']
     else:
         raise Exception('File not found')
+
+
+def get_upload_creds(g: str, data: str) -> dict:
+    try:
+        j = json.loads(data)
+        meta = j['meta']
+        path = j['path']
+    except:
+        return {}
+

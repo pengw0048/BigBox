@@ -52,7 +52,7 @@ function ci_finish(uploader, done){
                     'offset': uploader.file_size
                 },
                 'commit': {
-                    'path': '/' + uploader.file_name,
+                    'path': uploader.path + '/' + uploader.file_name,
                     'mode': 'overwrite'
                 }
             })

@@ -4,7 +4,8 @@ $(document).on("click", ".upload-to-cloud", function () {
     var pk = self.data("pk");
     var dname = self.text();
     var classname = self.data("classname");
-    $("#upload-form").hide();
+    var path = self.data("path");
+    $("#upload-form").hide().data("path", path);
     $("#upload-loader").show();
     $.ajax({
         url: "/get-up-creds",
@@ -70,6 +71,7 @@ function ChunkedUploader(file, progress_bar) {
     this.progress_bar = progress_bar;
     this.file_size = this.file.size;
     this.file_name = this.file.name;
+    this.path = $("#upload-form").data("path");
     this.chunk_size = ci_chunk_size(this.file_size);
     this.range_start = 0;
     this.range_end = this.chunk_size;

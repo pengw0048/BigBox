@@ -51,8 +51,9 @@ def get_space(db: Dropbox) -> dict:
 
 def get_file_list(db: Dropbox, path: str) -> tuple:
     ret = []
+    path = path.rstrip('/')
     try:
-        for f in db.files_list_folder(path.rstrip('/')).entries:
+        for f in db.files_list_folder(path).entries:
             try:
                 if hasattr(f, 'size'):
                     ret.append({'name': f.name, 'id': f.path_lower, 'size': f.size,
