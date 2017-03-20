@@ -21,7 +21,7 @@
                     <li><a tabindex="-1" href="#">Big files</a></li>
                     <li class="divider"></li>
                     {% for c in acc %}
-                        <li><a class="upload-to-cloud" tabindex="-1" href="#" data-pk="{{ c.pk }}" data-classname="{{ c.cloud.class_name }}">{{ c.display_name }}</a></li>
+                        <li><a class="upload-to-cloud" tabindex="-1" href="#" data-pk="{{ c.pk }}" data-classname="{{ c.cloud.class_name }}" data-path="{{ c.did }}">{{ c.display_name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>

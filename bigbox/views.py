@@ -88,7 +88,8 @@ def listview(request, path):
     for c in accs:
         module = importlib.import_module('bigbox.'+c.cloud.class_name)
         client = getattr(module, "get_client")(c)
-        fs = getattr(module, "get_file_list")(client, path)
+        fs, did = getattr(module, "get_file_list")(client, path)
+        c.did = did
         for f in fs:
             f['clouds'] = [c]
             if f['is_folder']:
@@ -189,7 +190,8 @@ def get_upload_creds(request):
     acc = get_object_or_404(StorageAccount, pk=request.GET['pk'])
     if acc.user != request.user:
         return JsonResponse({'status': 'error', 'msg': 'not your account'})
+    data = request.GET.get('data', None)
     module = importlib.import_module('bigbox.'+acc.cloud.class_name)
     client = getattr(module, "get_client")(acc)
-    creds = getattr(module, "get_upload_creds")(client)
+    creds = getattr(module, "get_upload_creds")(client, data)
     return JsonResponse(creds)

@@ -83,8 +83,9 @@ def get_space(od: str) -> dict:
     return {'used': used, 'total': total}
 
 
-def get_file_list(od: str, path: str) -> list:
+def get_file_list(od: str, path: str) -> tuple:
     ret = []
+    opath = path
     if path == '/':
         path = "drive/root/children"
     else:
@@ -103,7 +104,7 @@ def get_file_list(od: str, path: str) -> list:
                 pass
     except:
         pass
-    return ret
+    return ret, opath
 
 
 def get_down_link(od: str, fid: str) -> str:

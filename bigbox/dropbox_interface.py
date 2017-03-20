@@ -49,7 +49,7 @@ def get_space(db: Dropbox) -> dict:
     return {'used': used, 'total': total}
 
 
-def get_file_list(db: Dropbox, path: str) -> list:
+def get_file_list(db: Dropbox, path: str) -> tuple:
     ret = []
     try:
         for f in db.files_list_folder(path.rstrip('/')).entries:
@@ -63,7 +63,7 @@ def get_file_list(db: Dropbox, path: str) -> list:
                 pass
     except:
         pass
-    return ret
+    return ret, path
 
 
 def get_down_link(db: Dropbox, fid: str) -> str:
@@ -71,5 +71,5 @@ def get_down_link(db: Dropbox, fid: str) -> str:
     return res.link
 
 
-def get_upload_creds(db: Dropbox) -> dict:
+def get_upload_creds(db: Dropbox, data: str) -> dict:
     return {'token': db._oauth2_access_token}
