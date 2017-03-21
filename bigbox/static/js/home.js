@@ -76,7 +76,8 @@ function updateProgressBar(obj, completed, total, disp) {
     if (completed == total)
         obj.css('width', '100%').removeClass('progress-bar-info').addClass('progress-bar-success').children('span').text('Done!');
     else
-        obj.css('width', completed * 100.0 / total + '%').children('span').text(disp(completed)+'/'+disp(total));
+        obj.css('width', completed * 100.0 / total + '%').children('span')
+            .text(disp? disp(completed)+'/'+disp(total) : completed+'/'+total);
 }
 function checkUpQueue() {
     var count = MAX_UP_THREADS;
@@ -86,7 +87,7 @@ function checkUpQueue() {
         if (uploaders[i].state == 2) count--;
         if (uploaders[i].state > 2) completed++;
     }
-    updateProgressBar($('#master-progress'), completed, uploaders.length, function (a) { return a; });
+    updateProgressBar($('#master-progress'), completed, uploaders.length);
     for (i = 0; i < uploaders.length; i++) {
         if (count == 0) break;
         if (uploaders[i].state == 1) {
@@ -156,7 +157,7 @@ ChunkedUploader.prototype = {
     },
     _onDone: function() {
         this.state = 3;
-        updateProgressBar(this.progress_bar, 1, 1, function (a) { return a; });
+        updateProgressBar(this.progress_bar, 1, 1);
         checkUpQueue();
     },
     wait: function() {
