@@ -158,8 +158,9 @@ ChunkedUploader.prototype = {
     },
     start: function() {
         this.state = 2;
-        this._updateProgressBar(0);
+        this.progress_bar.children('span').text('Starting ...');
         ci_start(this, this._upload.bind(this));
+        this._updateProgressBar(0);
     },
     fail: function(text) {
         this.state = 4;
