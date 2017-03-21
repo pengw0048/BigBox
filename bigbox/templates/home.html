@@ -143,7 +143,7 @@
                         {% for c in acc %}
                             <label class="btn btn-sm btn-default active">
                                 <i class="color-icon icon-left" style="background-color: {{ c.color }}"></i>
-                                <input type="checkbox" name="options" value="{{ c.pk }}" autocomplete="off" checked><small class="color-icon-text">{{ c.display_name }}</small>
+                                <input type="checkbox" name="pk" value="{{ c.pk }}" autocomplete="off" checked><small class="color-icon-text">{{ c.display_name }}</small>
                             </label>
                         {% endfor %}
                     </div>

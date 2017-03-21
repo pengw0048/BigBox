@@ -6,7 +6,7 @@ function ci_init(data, path, pk, done){
         data: {'path': path, 'pk': pk},
         dataType: 'json',
         success: function(data) {
-            g_parent = data.id;
+            g_parent = data[pk].id;
             console.log("gdrive init success");
             done();
         },
