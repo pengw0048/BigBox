@@ -70,6 +70,14 @@ $(document).ready(function() {
         uploaders = [];
     });
 });
+function updateProgressBar(obj, completed, total, disp) {
+    if (completed * 100.0 / total >= 50.0)
+        obj.children('span').css('color', 'white').css('text-shadow', '1px 1px black');
+    if (completed == total)
+        obj.css('width', '100%').removeClass('progress-bar-info').addClass('progress-bar-success').children('span').text('Done!');
+    else
+        obj.css('width', completed * 100.0 / total + '%').children('span').text(disp(completed)+'/'+disp(total));
+}
 function checkUpQueue() {
     var count = MAX_UP_THREADS;
     var completed = 0;
@@ -78,14 +86,7 @@ function checkUpQueue() {
         if (uploaders[i].state == 2) count--;
         if (uploaders[i].state > 2) completed++;
     }
-    $('#master-progress').css('width', completed * 100.0 / uploaders.length + '%')
-        .children('span').text(completed+'/'+uploaders.length);
-    if (completed * 100.0 / uploaders.length >= 50.0)
-        $('#master-progress').children('span').css('color', 'white').css('text-shadow', '1px 1px black');
-    if (completed == uploaders.length) {
-        $('#master-progress').css('width', '100%').removeClass('progress-bar-info').addClass('progress-bar-success')
-            .children('span').text('All done!');
-    }
+    updateProgressBar($('#master-progress'), completed, uploaders.length, function (a) { return a; });
     for (i = 0; i < uploaders.length; i++) {
         if (count == 0) break;
         if (uploaders[i].state == 1) {
@@ -130,10 +131,7 @@ ChunkedUploader.prototype = {
         this._updateProgressBar(real_total);
     },
     _updateProgressBar: function(total) {
-        this.progress_bar.css('width', (this.file_size == 0 ? 100 : total * 100.0 / this.file_size) + '%');
-        this.progress_bar.children('span').text(total.formatBytes() + '/' + this.file_size.formatBytes());
-        if (total * 100.0 / this.file_size >= 50.0)
-            this.progress_bar.children('span').css('color', 'white').css('text-shadow', '1px 1px black');
+        updateProgressBar(this.progress_bar, total, this.file_size, formatBytes);
     },
     _onChunkComplete: function() {
         if (this.range_end === this.file_size) {
@@ -158,10 +156,7 @@ ChunkedUploader.prototype = {
     },
     _onDone: function() {
         this.state = 3;
-        this.progress_bar.css('width', '100%');
-        this.progress_bar.removeClass('progress-bar-info');
-        this.progress_bar.addClass('progress-bar-success');
-        this.progress_bar.children('span').text('Done!').css('color', 'white').css('text-shadow', '1px 1px black');
+        updateProgressBar(this.progress_bar, 1, 1, function (a) { return a; });
         checkUpQueue();
     },
     wait: function() {
