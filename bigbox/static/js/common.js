@@ -26,3 +26,13 @@ function formatBytes (bytes) {
 Number.prototype.formatBytes = function() {
     formatBytes(this);
 };
+var regexName = /^[^\\\/?%*:|"<>]{1,100}$/;
+$('.name-input').on('change', function () {
+    if ($(this).val().match(regexName)) {
+        $(this).siblings('.errmsg').addClass('hidden');
+        $(this).parent().removeClass('has-error');
+    } else {
+        $(this).siblings('.errmsg').removeClass('hidden');
+        $(this).parent().addClass('has-error');
+    }
+});
