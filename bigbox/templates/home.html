@@ -132,12 +132,20 @@
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                     <h4 class="modal-title">Create a new folder</h4>
                 </div>
-                <form>
+                <form id="new-folder-form">
                 <div class="modal-body">
                     <div class="form-group">
                         <label class="control-label" for="folder-name-input">Folder name</label>
                         <input type="text" class="form-control name-input" id="folder-name-input" minlength="1" maxlength="100" placeholder="" pattern='^[^\\\/?%*:|"<>]{1,100}$'>
                         <div class="hidden errmsg help-block">The name should not contain: \/?%*:|"<>.</div>
+                    </div>
+                    <div class="form-group btn-group" data-toggle="buttons">
+                        {% for c in acc %}
+                            <label class="btn btn-sm btn-default active">
+                                <i class="color-icon icon-left" style="background-color: {{ c.color }}"></i>
+                                <input type="checkbox" name="options" value="{{ c.pk }}" autocomplete="off" checked><small class="color-icon-text">{{ c.display_name }}</small>
+                            </label>
+                        {% endfor %}
                     </div>
                 </div>
                 <div class="modal-footer">
