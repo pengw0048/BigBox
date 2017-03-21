@@ -26,6 +26,7 @@ $(document).on("click", ".upload-to-cloud", function () {
     $("#upload-dialog").modal();
 });
 $(document).ready(function() {
+    $('#master-progress-container').hide();
     $('#upload-dialog').on('show.bs.modal', function (e) {
         uploaders = [];
         $('#file-input').prop('disabled', false).val('');
@@ -59,6 +60,7 @@ $(document).ready(function() {
             uploader.wait();
         });
         checkUpQueue();
+        $('#master-progress-container').show();
         e.preventDefault();
     });
     $('#upload-clear').on('click', function () {
@@ -70,9 +72,19 @@ $(document).ready(function() {
 });
 function checkUpQueue() {
     var count = MAX_UP_THREADS;
+    var completed = 0;
     var i;
     for (i = 0; i < uploaders.length; i++) {
-        if (uploaders[i].state == 2) count++;
+        if (uploaders[i].state == 2) count--;
+        if (uploaders[i].state > 2) completed++;
+    }
+    $('#master-progress').css('width', completed * 100.0 / uploaders.length + '%')
+        .children('span').text(completed+'/'+uploaders.length);
+    if (completed * 100.0 / uploaders.length >= 50.0)
+        $('#master-progress').children('span').css('color', 'white').css('text-shadow', '1px 1px black');
+    if (completed == uploaders.length) {
+        $('#master-progress').css('width', '100%').removeClass('progress-bar-info').addClass('progress-bar-success')
+            .children('span').text('All done!');
     }
     for (i = 0; i < uploaders.length; i++) {
         if (count == 0) break;
