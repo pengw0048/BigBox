@@ -3,7 +3,7 @@ function ci_init(data, path, pk, done){
     $.ajax({
         url: '/create-folder',
         method: 'POST',
-        data: {'path': path, 'pk': pk},
+        data: {'path': path, 'pk': pk, 'name': ''},
         dataType: 'json',
         success: function(data) {
             g_parent = data[pk].id;

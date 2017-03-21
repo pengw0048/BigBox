@@ -74,3 +74,11 @@ def get_down_link(db: Dropbox, fid: str) -> str:
 
 def get_upload_creds(db: Dropbox, data: str) -> dict:
     return {'token': db._oauth2_access_token}
+
+
+def create_folder(db: Dropbox, path: str, name: str) -> dict:
+    try:
+        res = db.files_create_folder(path + '/' + name)
+        return {'id': res.id}
+    except:
+        return {}

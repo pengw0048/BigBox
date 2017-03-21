@@ -115,3 +115,6 @@ h1 {
 .color-icon-text {
     margin-left: 1.5em;
 }
+.spinning {
+    animation: spin 1s infinite linear;
+}

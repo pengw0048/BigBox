@@ -125,7 +125,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="new-folder-dialog" tabindex="-1" >
+    <div class="modal fade" id="new-folder-dialog" tabindex="-1" data-path="{{ path }}">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -143,13 +143,13 @@
                         {% for c in acc %}
                             <label class="btn btn-sm btn-default active">
                                 <i class="color-icon icon-left" style="background-color: {{ c.color }}"></i>
-                                <input type="checkbox" name="pk" value="{{ c.pk }}" autocomplete="off" checked><small class="color-icon-text">{{ c.display_name }}</small>
+                                <input type="checkbox" class="create-folder-pk" value="{{ c.pk }}" autocomplete="off" checked><small class="color-icon-text">{{ c.display_name }}</small>
                             </label>
                         {% endfor %}
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="submit" class="btn btn-primary" id="create-folder-button"><span class="glyphicon glyphicon-refresh spinning hidden"></span> Create</button>
                     <a class="btn btn-default" data-dismiss="modal">Close</a>
                 </div>
                 </form>

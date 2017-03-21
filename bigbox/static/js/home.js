@@ -27,14 +27,14 @@ $(document).on("click", ".upload-to-cloud", function () {
 });
 $(document).ready(function() {
     $('#master-progress-container').hide();
-    $('#upload-dialog').on('show.bs.modal', function (e) {
+    $('#upload-dialog').on('show.bs.modal', function () {
         uploaders = [];
         $('#file-input').prop('disabled', false).val('');
         $('#upload-add').removeClass('disabled');
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
         $('#file-list').empty();
-    }).on('hidden.bs.modal', function (e) {
+    }).on('hidden.bs.modal', function () {
         location.reload(true);
     });
     $('#file-input').on('change', function(e){
@@ -51,7 +51,7 @@ $(document).ready(function() {
         $('#upload-start').prop('disabled', uploaders.length == 0);
         $('#upload-clear').prop('disabled', uploaders.length == 0);
     });
-    $('#upload-form').on('submit', function (e) {
+    $('#upload-form').on('submit', function () {
         $('#file-input').prop('disabled', true);
         $('#upload-add').addClass('disabled');
         $('#upload-start').prop('disabled', true);
@@ -62,6 +62,24 @@ $(document).ready(function() {
         checkUpQueue();
         $('#master-progress-container').show();
         e.preventDefault();
+    });
+    $('#new-folder-form').on('submit', function (e) {
+        $('#create-folder-button').prop('disabled', true).children('span').removeClass('hidden');
+        e.preventDefault();
+        pks = [];
+        $.each($('.create-folder-pk'), function (i, input) {
+            if ($(input).prop('checked')) pks.push($(input).val());
+        });
+        $.ajax({
+            url: "/create-folder",
+            method: "POST",
+            dataType: "json",
+            data: {'pk': pks, 'path': $('#new-folder-dialog').data('path'), 'name': $('#folder-name-input').val()},
+            traditional: true,
+            complete: function () {
+                location.reload(true);
+            }
+        })
     });
     $('#upload-clear').on('click', function () {
         $('#upload-start').prop('disabled', true);
