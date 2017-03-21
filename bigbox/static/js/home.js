@@ -1,4 +1,5 @@
 var uploaders = [];
+var MAX_UP_THREADS = 3;
 $(document).on("click", ".upload-to-cloud", function () {
     var self = $(this);
     var pk = self.data("pk");
@@ -55,8 +56,9 @@ $(document).ready(function() {
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
         $.each(uploaders, function(i, uploader) {
-            uploader.start();
+            uploader.wait();
         });
+        checkUpQueue();
         e.preventDefault();
     });
     $('#upload-clear').on('click', function () {
@@ -66,6 +68,20 @@ $(document).ready(function() {
         uploaders = [];
     });
 });
+function checkUpQueue() {
+    var count = MAX_UP_THREADS;
+    var i;
+    for (i = 0; i < uploaders.length; i++) {
+        if (uploaders[i].state == 2) count++;
+    }
+    for (i = 0; i < uploaders.length; i++) {
+        if (count == 0) break;
+        if (uploaders[i].state == 1) {
+            uploaders[i].start();
+            count--;
+        }
+    }
+}
 function ChunkedUploader(file, progress_bar) {
     if (!this instanceof ChunkedUploader) {
         return new ChunkedUploader(file, options);
@@ -74,6 +90,7 @@ function ChunkedUploader(file, progress_bar) {
     this.progress_bar = progress_bar;
     this.file_size = this.file.size;
     this.file_name = this.file.name;
+    this.state = 0;
     this.path = $("#upload-form").data("path");
     this.chunk_size = ci_chunk_size(this.file_size);
     this.range_start = 0;
@@ -128,16 +145,26 @@ ChunkedUploader.prototype = {
         this.fail('Error during upload');
     },
     _onDone: function() {
+        this.state = 3;
         this.progress_bar.css('width', '100%');
         this.progress_bar.removeClass('progress-bar-info');
         this.progress_bar.addClass('progress-bar-success');
         this.progress_bar.children('span').text('Done!').css('color', 'white').css('text-shadow', '1px 1px black');
+        checkUpQueue();
+    },
+    wait: function() {
+        this.state = 1;
+        this.progress_bar.children('span').text('Waiting ...');
     },
     start: function() {
+        this.state = 2;
+        this._updateProgressBar(0);
         ci_start(this, this._upload.bind(this));
     },
     fail: function(text) {
+        this.state = 4;
         this.progress_bar.css('width', '0');
         this.progress_bar.children('span').text(text).css('color', 'red').css('text-shadow', '1px 1px white');
+        checkUpQueue();
     }
 };
