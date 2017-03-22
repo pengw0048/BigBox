@@ -24,7 +24,31 @@ $(document).on("click", ".upload-to-cloud", function () {
     $("#upload-to").text(dname);
     $("#upload-dialog").modal();
 });
+// transmit values of files and dir_list to front end
 $(document).ready(function() {
+    // call server for dir_list
+    var self = $(this);
+    var path = self.data("path");
+    if (!path.startsWith('/')) {
+        path = '/' + path;
+    }
+    $.ajax({
+        url: "/get-list",
+        data: {"path": path},
+        method: "GET",
+        dataType: "json",
+        success: generateDirList
+    });
+    console.log("success")
+    // call server for files
+    $.ajax({
+        url: "/get-files",
+        data: {"path": path},
+        method: "GET",
+        dataType: "json",
+        success: generateFiles
+    });
+
     $('#upload-dialog').on('show.bs.modal', function (e) {
         uploaders = [];
         $('#file-input').prop('disabled', false).val('');
@@ -66,6 +90,56 @@ $(document).ready(function() {
         uploaders = [];
     });
 });
+
+function generateDirList(items) {
+    $(items).each(function() {
+        var url = "{% url 'list' item.url=-1 %}".replace('-1', item.url);
+        $("#dir_list_show").append (
+            '<li class="breadcrumb-item">' + '<a href=' + url + "></a></li>"
+        );
+    });
+}
+
+function generateFiles(items) {
+    $(items).each(function() {
+        var self = $(this);
+        var htmlContent = '<tr><td class="text-xs-left" data-sort-value="'
+        if (slef.is_folder) {
+            htmlContent.append("d");
+        } else {
+            htmlContent.append("f");
+        }
+        htmlContent.append("{{" + self.name + '|lower}}">' + '<i class="fa fa-fw');
+        if (self.is_folder) {
+            htmlContent.append("fa-folder");
+        } else {
+            htmlContent.append("fa-file-o");
+        }
+        htmlContent.append("></i> &nbsp;<a href=");
+        if (self.is_folder) {
+            htmlContent.append("{% url 'list' path %}{{" + self.name + "}}");
+        } else {
+            htmlContent.append("{% url 'get-download' %}?pk={{" + self.acc.pk + "}}&id={{" + self.id + '}}" target="_blank"');
+        }
+        htmlContent.append('<span class="pull-right">');
+        for (var c in self.clouds) {
+            htmlContent.append('<i class="color-icon" style="background-color: {{' + self.color + '}}"></i>');
+        }
+        htmlContent.append("</span></td>");
+        if (self.is_folder) {
+            htmlContent.append('<td class="text-xs-left" data-sort-value="-1">-</td>' +
+                                '<td class="text-xs-left" data-sort-value="-1">-</td>');
+        } else {
+            htmlContent.append('<td class="text-xs-left" data-sort-value="{{' + self.size + '}}">{{' +
+                           self.size + "|filesizeformat }}</td>" + '<td class="text-xs-left" data-sort-value="{{'
+                           + self.time + "|date:'U'" +  '}}"' + ">{{'" + self.time + "|naturaltime }}</td>");
+        }
+        htmlContent.append("</tr>");
+
+        $("#file_list_show").append(htmlContent);
+    });
+}
+
 function ChunkedUploader(file, progress_bar) {
     if (!this instanceof ChunkedUploader) {
         return new ChunkedUploader(file, options);

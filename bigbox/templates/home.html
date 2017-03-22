@@ -8,9 +8,7 @@
             {% include 'popupmsg.html' %}
             <ol class="breadcrumb" dir="ltr">
                 <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fa fa-fw fa-home fa-lg"></i></a></li>
-                {% for item in dir_list %}
-                    <li class="breadcrumb-item"><a href="{% url 'list' item.url %}">{{ item.name }}</a></li>
-                {% endfor %}
+                <div class="dir_list_show"></div>
             </ol>
         </div>
         <div class="col-xs-2">
@@ -60,7 +58,7 @@
                         </td>
                     </tr>
                     </tfoot>
-                    <tbody>
+                    <tbody class="file_list_show">
                         {% for f in files %}
                             <tr>
                                 <td class="text-xs-left" data-sort-value="{% if f.is_folder %}d{% else %}f{% endif %}{{ f.name|lower }}">
