@@ -58,7 +58,7 @@
                         </td>
                     </tr>
                     </tfoot>
-                    <tbody class="file_list_show">
+                    <tbody id="file_list_show">
                         {% for f in files %}
                             <tr>
                                 <td class="text-xs-left" data-sort-value="{% if f.is_folder %}d{% else %}f{% endif %}{{ f.name|lower }}">
@@ -158,7 +158,6 @@
 {% block scripts %}
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/listr.pack.css' %}">
-    <script src="{% static 'js/listr.pack.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/jquery.fileupload.css' %}">
     <script src="{% static 'js/common.js' %}"></script>
     <script src="{% static 'js/home.js' %}"></script>

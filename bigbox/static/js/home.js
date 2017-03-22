@@ -15,7 +15,7 @@ $(document).on("click", ".upload-to-cloud", function () {
         dataType: "json",
         success: function (data) {
             $.getScript("/static/js/" + classname + ".js", function () {
-                ci_init(data, path, pk, function(){
+                ci_init(data, $('#new-folder-dialog').data("path"), pk, function () {
                     $("#upload-form").show();
                     $("#upload-loader").hide();
                 });
@@ -24,34 +24,38 @@ $(document).on("click", ".upload-to-cloud", function () {
     });
     $("#upload-to").text(dname);
     $("#upload-dialog").modal();
+}).on("click", ".folder-link", function() {
+    var path = $('#new-folder-dialog').data("path");
+    var folder = $(this).text();
+    $('#new-folder-dialog').data("path", path + folder + "/");
+    loadFolder();
 });
-// transmit values of files and dir_list to front end
-$(document).ready(function() {
-    $('#master-progress-container').hide();
-    $('#upload-dialog').on('show.bs.modal', function () {
-    // call server for dir_list
-    var self = $(this);
-    var path = self.data("path");
+;
+function loadFolder() {
+    var path = $('#new-folder-dialog').data("path");
     if (!path.startsWith('/')) {
         path = '/' + path;
     }
     $.ajax({
-        url: "/get-list",
-        data: {"path": path},
+        url: "/get-list" + path,
         method: "GET",
         dataType: "json",
         success: generateDirList
     });
-    console.log("success")
+    console.log("success");
     // call server for files
     $.ajax({
-        url: "/get-files",
-        data: {"path": path},
+        url: "/get-files" + path,
         method: "GET",
         dataType: "json",
         success: generateFiles
     });
-
+}
+// transmit values of files and dir_list to front end
+$(document).ready(function () {
+    $('#master-progress-container').hide();
+    // call server for dir_list
+    loadFolder();
     $('#upload-dialog').on('show.bs.modal', function (e) {
         uploaders = [];
         $('#file-input').prop('disabled', false).val('');
@@ -62,11 +66,11 @@ $(document).ready(function() {
     }).on('hidden.bs.modal', function () {
         location.reload(true);
     });
-    $('#file-input').on('change', function(e){
+    $('#file-input').on('change', function (e) {
         var files = e.target.files, file;
         for (var i = 0; i < files.length; i++) {
             file = files[i];
-            $('#file-list').append('<tr><td><div class="name">'+file.name+'</div></td><td style="width:100%">'
+            $('#file-list').append('<tr><td><div class="name">' + file.name + '</div></td><td style="width:100%">'
                 + '<div class="progress active"><div class="progress-bar progress-bar-info" style="width:0"><span>'
                 + file.size.formatBytes() + '</span></div></div></td>'
                 + '</tr>');
@@ -81,7 +85,7 @@ $(document).ready(function() {
         $('#upload-add').addClass('disabled');
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
-        $.each(uploaders, function(i, uploader) {
+        $.each(uploaders, function (i, uploader) {
             uploader.wait();
         });
         checkUpQueue();
@@ -115,49 +119,50 @@ $(document).ready(function() {
 });
 
 function generateDirList(items) {
-    $(items).each(function() {
+    $("#dir_list_show").empty();
+    $(items).each(function (i, item) {
         var url = "{% url 'list' item.url=-1 %}".replace('-1', item.url);
-        $("#dir_list_show").append (
+        $("#dir_list_show").append(
             '<li class="breadcrumb-item">' + '<a href=' + url + "></a></li>"
         );
     });
 }
 
 function generateFiles(items) {
-    $(items).each(function() {
-        var self = $(this);
+    $("#file_list_show").empty();
+    $(items).each(function (i, self) {
         var htmlContent = '<tr><td class="text-xs-left" data-sort-value="'
-        if (slef.is_folder) {
-            htmlContent.append("d");
-        } else {
-            htmlContent.append("f");
-        }
-        htmlContent.append("{{" + self.name + '|lower}}">' + '<i class="fa fa-fw');
         if (self.is_folder) {
-            htmlContent.append("fa-folder");
+            htmlContent+=("d");
         } else {
-            htmlContent.append("fa-file-o");
+            htmlContent+=("f");
         }
-        htmlContent.append("></i> &nbsp;<a href=");
+        htmlContent+=(self.name.toLowerCase() + '">' + '<i class="fa fa-fw');
         if (self.is_folder) {
-            htmlContent.append("{% url 'list' path %}{{" + self.name + "}}");
+            htmlContent+=(" fa-folder");
         } else {
-            htmlContent.append("{% url 'get-download' %}?pk={{" + self.acc.pk + "}}&id={{" + self.id + '}}" target="_blank"');
+            htmlContent+=(" fa-file-o");
         }
-        htmlContent.append('<span class="pull-right">');
+        htmlContent+=('"></i> &nbsp;<a href="');
+        if (self.is_folder) {
+            htmlContent+=('#" class="folder-link">');
+        } else {
+            htmlContent+=('/get-down?pk=' + self.acc + '&id=' + self.id + '" target="_blank">');
+        }
+        htmlContent+=(self.name + '</a><span class="pull-right">');
         for (var c in self.clouds) {
-            htmlContent.append('<i class="color-icon" style="background-color: {{' + self.color + '}}"></i>');
+            htmlContent+=(' <i class="color-icon" style="background-color: ' + self.clouds[c] + '"></i>');
         }
-        htmlContent.append("</span></td>");
+        htmlContent+=("</span></td>");
         if (self.is_folder) {
-            htmlContent.append('<td class="text-xs-left" data-sort-value="-1">-</td>' +
-                                '<td class="text-xs-left" data-sort-value="-1">-</td>');
+            htmlContent+=('<td class="text-xs-left" data-sort-value="-1">-</td>' +
+                '<td class="text-xs-left" data-sort-value="-1">-</td>');
         } else {
-            htmlContent.append('<td class="text-xs-left" data-sort-value="{{' + self.size + '}}">{{' +
-                           self.size + "|filesizeformat }}</td>" + '<td class="text-xs-left" data-sort-value="{{'
-                           + self.time + "|date:'U'" +  '}}"' + ">{{'" + self.time + "|naturaltime }}</td>");
+            htmlContent+=('<td class="text-xs-left" data-sort-value="' + self.size + '">' +
+                formatBytes(self.size) + "</td>" + '<td class="text-xs-left" data-sort-value="'
+                + self.time + '">' + self.time + "</td>");
         }
-        htmlContent.append("</tr>");
+        htmlContent+=("</tr>");
 
         $("#file_list_show").append(htmlContent);
     });
@@ -170,8 +175,9 @@ function updateProgressBar(obj, completed, total, disp) {
         obj.css('width', '100%').removeClass('progress-bar-info').addClass('progress-bar-success').children('span').text('Done!');
     else
         obj.css('width', completed * 100.0 / total + '%').children('span')
-            .text(disp? disp(completed)+'/'+disp(total) : completed+'/'+total);
+            .text(disp ? disp(completed) + '/' + disp(total) : completed + '/' + total);
 }
+
 function checkUpQueue() {
     var count = MAX_UP_THREADS;
     var completed = 0;
@@ -189,6 +195,7 @@ function checkUpQueue() {
         }
     }
 }
+
 function ChunkedUploader(file, progress_bar) {
     if (!this instanceof ChunkedUploader) {
         return new ChunkedUploader(file, options);
@@ -210,8 +217,9 @@ function ChunkedUploader(file, progress_bar) {
     this.upload_request.addEventListener("progress", this._onProgress.bind(this), false);
     this.upload_request.addEventListener("error", this._onError.bind(this), false);
 }
+
 ChunkedUploader.prototype = {
-    _upload: function() {
+    _upload: function () {
         var chunk;
         if (this.range_end > this.file_size) {
             this.range_end = this.file_size;
@@ -220,14 +228,14 @@ ChunkedUploader.prototype = {
         ci_prepare_chunk(this, chunk);
         this.upload_request.send(chunk);
     },
-    _onProgress: function(evt) {
+    _onProgress: function (evt) {
         var real_total = evt.loaded + this.range_start;
         this._updateProgressBar(real_total);
     },
-    _updateProgressBar: function(total) {
+    _updateProgressBar: function (total) {
         updateProgressBar(this.progress_bar, total, this.file_size, formatBytes);
     },
-    _onChunkComplete: function() {
+    _onChunkComplete: function () {
         if (this.range_end === this.file_size) {
             this._onUploadComplete();
             return;
@@ -237,10 +245,10 @@ ChunkedUploader.prototype = {
         this.range_end = this.range_start + this.chunk_size;
         this._upload();
     },
-    _onUploadComplete: function() {
+    _onUploadComplete: function () {
         ci_finish(this, this._onDone.bind(this));
     },
-    _onError: function() {
+    _onError: function () {
         if (this.ignore_failure) {
             this._updateProgressBar(this.range_end);
             this._onChunkComplete();
@@ -248,22 +256,22 @@ ChunkedUploader.prototype = {
         }
         this.fail('Error during upload');
     },
-    _onDone: function() {
+    _onDone: function () {
         this.state = 3;
         updateProgressBar(this.progress_bar, 1, 1);
         checkUpQueue();
     },
-    wait: function() {
+    wait: function () {
         this.state = 1;
         this.progress_bar.children('span').text('Waiting ...');
     },
-    start: function() {
+    start: function () {
         this.state = 2;
         this.progress_bar.children('span').text('Starting ...');
         ci_start(this, this._upload.bind(this));
         this._updateProgressBar(0);
     },
-    fail: function(text) {
+    fail: function (text) {
         this.state = 4;
         this.progress_bar.css('width', '0');
         this.progress_bar.children('span').text(text).css('color', 'red').css('text-shadow', '1px 1px white');

@@ -115,15 +115,14 @@ def listview(request, path):
                                          'path': path if path[-1] == '/' else path + '/'})
 
 @login_required
-def get_list(path):
+def get_list(request, path):
     dir_list = []
     dir_base = ''
     if len(path.strip('/')) > 0:
         for dir in path.strip('/').split('/'):
             dir_base += '/' + dir
             dir_list.append({'name': dir, 'url': dir_base})
-    response_text = serializers.serialize('json', dir_list)
-    return HttpResponse(response_text, content_type='application/json')
+    return JsonResponse(dir_list, safe=False)
 
 @login_required
 def get_files(request, path) :
@@ -137,20 +136,19 @@ def get_files(request, path) :
         fs, did = getattr(module, "get_file_list")(client, path)
         c.did = did
         for f in fs:
-            f['clouds'] = [c]
+            f['clouds'] = [c.color]
             if f['is_folder']:
                 if f['name'] in folders:
-                    folders[f['name']]['clouds'].append(c)
+                    folders[f['name']]['clouds'].append(c.color)
                 else:
                     folders[f['name']] = f
             else:
-                f['acc'] = c
+                f['acc'] = c.pk
                 f['id'] = quote(f['id'])
                 files.append(f)
     files.extend(list(folders.values()))
     fl = sorted(files, key=lambda f: ('d' if f['is_folder'] else 'f') + f['name'].lower())
-    response_text = serializers.serialize('json', fl)
-    return HttpResponse(response_text, content_type='application/json')
+    return JsonResponse(fl, safe=False)
 
 
 @transaction.atomic
