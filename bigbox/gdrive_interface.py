@@ -103,7 +103,7 @@ def find_path_id(g: str, path: str, create: bool = False) -> str:
 
 
 def create_folder(g: str, path: str, name: str) -> dict:
-    if path == 'root' or path == '' or path == '/':
+    if path == 'root' or path+name == '' or path+name == '/':
         return {'id': 'root'}
     fullpath = path if name == '' else path + '/' + name
     return {'id': find_path_id(g, fullpath, True)}
