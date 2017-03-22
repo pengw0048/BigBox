@@ -59,26 +59,6 @@
                     </tr>
                     </tfoot>
                     <tbody id="file_list_show">
-                        {% for f in files %}
-                            <tr>
-                                <td class="text-xs-left" data-sort-value="{% if f.is_folder %}d{% else %}f{% endif %}{{ f.name|lower }}">
-                                    <i class="fa fa-fw {% if f.is_folder %}fa-folder{% else %}fa-file-o{% endif %}"></i>
-                                    &nbsp;<a href="{% if f.is_folder %}{% url 'list' path %}{{ f.name }}"{% else %}{% url 'get-download' %}?pk={{ f.acc.pk }}&id={{ f.id }}" target="_blank"{% endif %}>{{ f.name }}</a>
-                                    <span class="pull-right">
-                                        {% for c in f.clouds %}
-                                            <i class="color-icon" style="background-color: {{ c.color }}"></i>
-                                        {% endfor %}
-                                    </span>
-                                </td>
-                                {% if f.is_folder %}
-                                    <td class="text-xs-left" data-sort-value="-1">-</td>
-                                    <td class="text-xs-left" data-sort-value="-1">-</td>
-                                {% else %}
-                                    <td class="text-xs-left" data-sort-value="{{ f.size }}">{{ f.size|filesizeformat }}</td>
-                                    <td class="text-xs-left" data-sort-value="{{ f.time|date:'U' }}">{{ f.time|naturaltime }}</td>
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
                     </tbody>
                 </table>
             </div>
