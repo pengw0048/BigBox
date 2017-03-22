@@ -49,7 +49,7 @@ def get_space(db: Dropbox) -> dict:
     return {'used': used, 'total': total}
 
 
-def get_file_list(db: Dropbox, path: str) -> tuple:
+def get_file_list(db: Dropbox, path: str) -> list:
     ret = []
     path = path.rstrip('/')
     try:
@@ -64,7 +64,7 @@ def get_file_list(db: Dropbox, path: str) -> tuple:
                 pass
     except:
         pass
-    return ret, path
+    return ret
 
 
 def get_down_link(db: Dropbox, fid: str) -> str:

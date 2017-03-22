@@ -89,8 +89,7 @@ def listview2(request, path):
     for c in accs:
         module = importlib.import_module('bigbox.'+c.cloud.class_name)
         client = getattr(module, "get_client")(c)
-        fs, did = getattr(module, "get_file_list")(client, path)
-        c.did = did
+        fs = getattr(module, "get_file_list")(client, path)
         for f in fs:
             f['clouds'] = [c]
             if f['is_folder']:
@@ -133,8 +132,7 @@ def get_files(request, path) :
     for c in accs:
         module = importlib.import_module('bigbox.'+c.cloud.class_name)
         client = getattr(module, "get_client")(c)
-        fs, did = getattr(module, "get_file_list")(client, path)
-        c.did = did
+        fs = getattr(module, "get_file_list")(client, path)
         for f in fs:
             f['clouds'] = [c.color]
             if f['is_folder']:

@@ -103,7 +103,7 @@ def find_path_id(g: str, path: str, create: bool = False) -> str:
 
 
 def create_folder(g: str, path: str, name: str) -> dict:
-    if path == 'root':
+    if path == 'root' or path == '' or path == '/':
         return {'id': 'root'}
     fullpath = path if name == '' else path + '/' + name
     return {'id': find_path_id(g, fullpath, True)}
@@ -118,10 +118,10 @@ def create_folder_with_parent_id(g: str, parent: str, name: str) -> str:
     return r.json()['id']
 
 
-def get_file_list(g: str, path: str) -> tuple:
+def get_file_list(g: str, path: str) -> list:
     fid = find_path_id(g, path)
     if fid == '':
-        return [], path
+        return []
     r = requests.get('https://www.googleapis.com/drive/v3/files',
                      params={'q': "'%s' in parents and trashed = false" % fid.replace("'", "\\'"),
                              'fields': 'files(id,mimeType,modifiedTime,name,size)'},
@@ -140,7 +140,7 @@ def get_file_list(g: str, path: str) -> tuple:
                 raise
     except:
         raise
-    return ret, fid
+    return ret
 
 
 def get_down_link(g: str, fid: str) -> str:

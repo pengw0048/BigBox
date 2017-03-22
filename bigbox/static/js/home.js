@@ -7,7 +7,8 @@ $(document).on("click", ".upload-to-cloud", function () {
     var pk = self.data("pk");
     var dname = self.text();
     var classname = self.data("classname");
-    var path = self.data("path");
+    var path = $('#new-folder-dialog').data("path");
+    if (!path.endsWith('/')) path += '/';
     $("#upload-form").hide().data("path", path);
     $("#upload-loader").show();
     $.ajax({
@@ -17,7 +18,7 @@ $(document).on("click", ".upload-to-cloud", function () {
         dataType: "json",
         success: function (data) {
             $.getScript("/static/js/" + classname + ".js", function () {
-                ci_init(data, $('#new-folder-dialog').data("path"), pk, function () {
+                ci_init(data, path, pk, function () {
                     $("#upload-form").show();
                     $("#upload-loader").hide();
                 });

@@ -83,7 +83,7 @@ def get_space(od: str) -> dict:
     return {'used': used, 'total': total}
 
 
-def get_file_list(od: str, path: str) -> tuple:
+def get_file_list(od: str, path: str) -> list:
     ret = []
     opath = path
     if path == '/':
@@ -104,7 +104,7 @@ def get_file_list(od: str, path: str) -> tuple:
                 pass
     except:
         pass
-    return ret, opath
+    return ret
 
 
 def get_down_link(od: str, fid: str) -> str:
