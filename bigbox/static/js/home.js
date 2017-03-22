@@ -65,6 +65,9 @@ $(document).ready(function () {
     $('#master-progress-container').hide();
     // call server for dir_list
     loadFolder();
+    $('#new-folder-dialog').on('hide.bs.modal', function () {
+        loadFolder();
+    });
     $('#upload-dialog').on('show.bs.modal', function () {
         uploaders = [];
         $('#file-input').prop('disabled', false).val('');
@@ -73,7 +76,7 @@ $(document).ready(function () {
         $('#upload-clear').prop('disabled', true);
         $('#file-list').empty();
     }).on('hidden.bs.modal', function () {
-        location.reload(true);
+        loadFolder();
     });
     $('#file-input').on('change', function (e) {
         var files = e.target.files, file;
@@ -115,7 +118,8 @@ $(document).ready(function () {
             data: {'pk': pks, 'path': $('#new-folder-dialog').data('path'), 'name': $('#folder-name-input').val()},
             traditional: true,
             complete: function () {
-                location.reload(true);
+                $('#new-folder-dialog').modal('hide');
+                loadFolder();
             }
         })
     });
