@@ -30,7 +30,6 @@ $(document).on("click", ".upload-to-cloud", function () {
     $('#new-folder-dialog').data("path", path + folder + "/");
     loadFolder();
 });
-;
 function loadFolder() {
     var path = $('#new-folder-dialog').data("path");
     if (!path.startsWith('/')) {
@@ -55,7 +54,7 @@ $(document).ready(function () {
     $('#master-progress-container').hide();
     // call server for dir_list
     loadFolder();
-    $('#upload-dialog').on('show.bs.modal', function (e) {
+    $('#upload-dialog').on('show.bs.modal', function () {
         uploaders = [];
         $('#file-input').prop('disabled', false).val('');
         $('#upload-add').removeClass('disabled');
@@ -76,10 +75,10 @@ $(document).ready(function () {
             uploaders.push(new ChunkedUploader(file, $('.progress-bar').last()));
         }
         $('#file-input').val('');
-        $('#upload-start').prop('disabled', uploaders.length == 0);
-        $('#upload-clear').prop('disabled', uploaders.length == 0);
+        $('#upload-start').prop('disabled', uploaders.length === 0);
+        $('#upload-clear').prop('disabled', uploaders.length === 0);
     });
-    $('#upload-form').on('submit', function () {
+    $('#upload-form').on('submit', function (e) {
         $('#file-input').prop('disabled', true);
         $('#upload-add').addClass('disabled');
         $('#upload-start').prop('disabled', true);
@@ -94,7 +93,7 @@ $(document).ready(function () {
     $('#new-folder-form').on('submit', function (e) {
         $('#create-folder-button').prop('disabled', true).children('span').removeClass('hidden');
         e.preventDefault();
-        pks = [];
+        var pks = [];
         $.each($('.create-folder-pk'), function (i, input) {
             if ($(input).prop('checked')) pks.push($(input).val());
         });
@@ -131,7 +130,7 @@ function generateDirList(items) {
 function generateFiles(items) {
     $("#file_list_show").empty();
     $(items).each(function (i, self) {
-        var htmlContent = '<tr><td class="text-xs-left" data-sort-value="'
+        var htmlContent = '<tr><td class="text-xs-left" data-sort-value="';
         if (self.is_folder) {
             htmlContent+=("d");
         } else {
@@ -171,7 +170,7 @@ function generateFiles(items) {
 function updateProgressBar(obj, completed, total, disp) {
     if (completed * 100.0 / total >= 50.0)
         obj.children('span').css('color', 'white').css('text-shadow', '1px 1px black');
-    if (completed == total)
+    if (completed === total)
         obj.css('width', '100%').removeClass('progress-bar-info').addClass('progress-bar-success').children('span').text('Done!');
     else
         obj.css('width', completed * 100.0 / total + '%').children('span')
@@ -183,13 +182,13 @@ function checkUpQueue() {
     var completed = 0;
     var i;
     for (i = 0; i < uploaders.length; i++) {
-        if (uploaders[i].state == 2) count--;
+        if (uploaders[i].state === 2) count--;
         if (uploaders[i].state > 2) completed++;
     }
     updateProgressBar($('#master-progress'), completed, uploaders.length);
     for (i = 0; i < uploaders.length; i++) {
-        if (count == 0) break;
-        if (uploaders[i].state == 1) {
+        if (count === 0) break;
+        if (uploaders[i].state === 1) {
             uploaders[i].start();
             count--;
         }
