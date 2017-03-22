@@ -42,7 +42,6 @@ function loadFolder() {
         dataType: "json",
         success: generateDirList
     });
-    console.log("success");
     // call server for files
     $.ajax({
         url: "/get-files" + path,
@@ -119,13 +118,19 @@ $(document).ready(function () {
 });
 
 function generateDirList(items) {
+    console.log("success")
     $("#dir_list_show").empty();
+    var url = '"home"'
     $(items).each(function (i, item) {
-        var url = "{% url 'list' item.url=-1 %}".replace('-1', item.url);
+        if (url.endsWith('"')) {
+            url = url.substring(0, url.length - 1)
+        }
+        url = url + "/" + item.name + '/"'
         $("#dir_list_show").append(
-            '<li class="breadcrumb-item">' + '<a href=' + url + "></a></li>"
+            '<li class="breadcrumb-item">' + '<a href=' + url + ">" + item.name + "</a></li>"
         );
     });
+    console.log(url)
 }
 
 function generateFiles(items) {
