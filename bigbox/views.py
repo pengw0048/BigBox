@@ -245,12 +245,18 @@ def get_upload_creds(request):
 
 @login_required
 def create_folder(request):
-    if 'pk' not in request.POST or 'path' not in request.POST:
+    if 'pk' not in request.POST or 'path' not in request.POST or 'name' not in request.POST:
         return JsonResponse({'status': 'error', 'msg': 'missing fields'})
-    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
-    if acc.user != request.user:
-        return JsonResponse({'status': 'error', 'msg': 'not your account'})
-    module = importlib.import_module('bigbox.'+acc.cloud.class_name)
-    client = getattr(module, "get_client")(acc)
-    ret = getattr(module, "create_folder")(client, request.POST['path'])
-    return JsonResponse(ret)
+    accs = []
+    for pk in request.POST.getlist('pk'):
+        acc = get_object_or_404(StorageAccount, pk=pk)
+        if acc.user != request.user:
+            return JsonResponse({'status': 'error', 'msg': 'not your account'})
+        accs.append(acc)
+    rets = {}
+    for acc in accs:
+        module = importlib.import_module('bigbox.'+acc.cloud.class_name)
+        client = getattr(module, "get_client")(acc)
+        ret = getattr(module, "create_folder")(client, request.POST['path'].rstrip('/'), request.POST['name'])
+        rets[acc.pk] = ret
+    return JsonResponse(rets)

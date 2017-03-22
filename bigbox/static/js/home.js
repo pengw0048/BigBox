@@ -1,4 +1,5 @@
 var uploaders = [];
+var MAX_UP_THREADS = 3;
 $(document).on("click", ".upload-to-cloud", function () {
     var self = $(this);
     var pk = self.data("pk");
@@ -26,6 +27,8 @@ $(document).on("click", ".upload-to-cloud", function () {
 });
 // transmit values of files and dir_list to front end
 $(document).ready(function() {
+    $('#master-progress-container').hide();
+    $('#upload-dialog').on('show.bs.modal', function () {
     // call server for dir_list
     var self = $(this);
     var path = self.data("path");
@@ -56,7 +59,7 @@ $(document).ready(function() {
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
         $('#file-list').empty();
-    }).on('hidden.bs.modal', function (e) {
+    }).on('hidden.bs.modal', function () {
         location.reload(true);
     });
     $('#file-input').on('change', function(e){
@@ -73,15 +76,35 @@ $(document).ready(function() {
         $('#upload-start').prop('disabled', uploaders.length == 0);
         $('#upload-clear').prop('disabled', uploaders.length == 0);
     });
-    $('#upload-form').on('submit', function (e) {
+    $('#upload-form').on('submit', function () {
         $('#file-input').prop('disabled', true);
         $('#upload-add').addClass('disabled');
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
         $.each(uploaders, function(i, uploader) {
-            uploader.start();
+            uploader.wait();
         });
+        checkUpQueue();
+        $('#master-progress-container').show();
         e.preventDefault();
+    });
+    $('#new-folder-form').on('submit', function (e) {
+        $('#create-folder-button').prop('disabled', true).children('span').removeClass('hidden');
+        e.preventDefault();
+        pks = [];
+        $.each($('.create-folder-pk'), function (i, input) {
+            if ($(input).prop('checked')) pks.push($(input).val());
+        });
+        $.ajax({
+            url: "/create-folder",
+            method: "POST",
+            dataType: "json",
+            data: {'pk': pks, 'path': $('#new-folder-dialog').data('path'), 'name': $('#folder-name-input').val()},
+            traditional: true,
+            complete: function () {
+                location.reload(true);
+            }
+        })
     });
     $('#upload-clear').on('click', function () {
         $('#upload-start').prop('disabled', true);
@@ -140,6 +163,32 @@ function generateFiles(items) {
     });
 }
 
+function updateProgressBar(obj, completed, total, disp) {
+    if (completed * 100.0 / total >= 50.0)
+        obj.children('span').css('color', 'white').css('text-shadow', '1px 1px black');
+    if (completed == total)
+        obj.css('width', '100%').removeClass('progress-bar-info').addClass('progress-bar-success').children('span').text('Done!');
+    else
+        obj.css('width', completed * 100.0 / total + '%').children('span')
+            .text(disp? disp(completed)+'/'+disp(total) : completed+'/'+total);
+}
+function checkUpQueue() {
+    var count = MAX_UP_THREADS;
+    var completed = 0;
+    var i;
+    for (i = 0; i < uploaders.length; i++) {
+        if (uploaders[i].state == 2) count--;
+        if (uploaders[i].state > 2) completed++;
+    }
+    updateProgressBar($('#master-progress'), completed, uploaders.length);
+    for (i = 0; i < uploaders.length; i++) {
+        if (count == 0) break;
+        if (uploaders[i].state == 1) {
+            uploaders[i].start();
+            count--;
+        }
+    }
+}
 function ChunkedUploader(file, progress_bar) {
     if (!this instanceof ChunkedUploader) {
         return new ChunkedUploader(file, options);
@@ -148,6 +197,7 @@ function ChunkedUploader(file, progress_bar) {
     this.progress_bar = progress_bar;
     this.file_size = this.file.size;
     this.file_name = this.file.name;
+    this.state = 0;
     this.path = $("#upload-form").data("path");
     this.chunk_size = ci_chunk_size(this.file_size);
     this.range_start = 0;
@@ -175,10 +225,7 @@ ChunkedUploader.prototype = {
         this._updateProgressBar(real_total);
     },
     _updateProgressBar: function(total) {
-        this.progress_bar.css('width', (this.file_size == 0 ? 100 : total * 100.0 / this.file_size) + '%');
-        this.progress_bar.children('span').text(total.formatBytes() + '/' + this.file_size.formatBytes());
-        if (total * 100.0 / this.file_size >= 50.0)
-            this.progress_bar.children('span').css('color', 'white').css('text-shadow', '1px 1px black');
+        updateProgressBar(this.progress_bar, total, this.file_size, formatBytes);
     },
     _onChunkComplete: function() {
         if (this.range_end === this.file_size) {
@@ -202,16 +249,24 @@ ChunkedUploader.prototype = {
         this.fail('Error during upload');
     },
     _onDone: function() {
-        this.progress_bar.css('width', '100%');
-        this.progress_bar.removeClass('progress-bar-info');
-        this.progress_bar.addClass('progress-bar-success');
-        this.progress_bar.children('span').text('Done!').css('color', 'white').css('text-shadow', '1px 1px black');
+        this.state = 3;
+        updateProgressBar(this.progress_bar, 1, 1);
+        checkUpQueue();
+    },
+    wait: function() {
+        this.state = 1;
+        this.progress_bar.children('span').text('Waiting ...');
     },
     start: function() {
+        this.state = 2;
+        this.progress_bar.children('span').text('Starting ...');
         ci_start(this, this._upload.bind(this));
+        this._updateProgressBar(0);
     },
     fail: function(text) {
+        this.state = 4;
         this.progress_bar.css('width', '0');
         this.progress_bar.children('span').text(text).css('color', 'red').css('text-shadow', '1px 1px white');
+        checkUpQueue();
     }
 };

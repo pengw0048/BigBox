@@ -14,13 +14,25 @@ $.ajaxSetup({
     },
     cache: true
 });
-Number.prototype.formatBytes = function() {
+function formatBytes (bytes) {
     var units = ['B', 'KB', 'MB', 'GB', 'TB'],
-        bytes = this,
         i;
 
     for (i = 0; bytes >= 1024 && i < 4; i++) {
         bytes /= 1024;
     }
     return bytes.toFixed(2) + units[i];
+}
+Number.prototype.formatBytes = function() {
+    formatBytes(this);
 };
+var regexName = /^[^\\\/?%*:|"<>]{1,100}$/;
+$('.name-input').on('change', function () {
+    if ($(this).val().match(regexName)) {
+        $(this).siblings('.errmsg').addClass('hidden');
+        $(this).parent().removeClass('has-error');
+    } else {
+        $(this).siblings('.errmsg').removeClass('hidden');
+        $(this).parent().addClass('has-error');
+    }
+});

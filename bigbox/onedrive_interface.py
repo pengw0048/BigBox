@@ -129,3 +129,14 @@ def get_upload_creds(od: str, data: str) -> dict:
     r = requests.post(settings.ONEDRIVE_BASE_URL + 'drive/root:/' + full_path + ':/createUploadSession',
                       headers={'Authorization': 'bearer ' + od})
     return {'url': r.json()['uploadUrl']}
+
+
+def create_folder(od: str, path: str, name: str) -> dict:
+    if path == '':
+        path = 'drive/root/children'
+    else:
+        path = 'drive/root:' + path + ':/children'
+    r = requests.post(settings.ONEDRIVE_BASE_URL + path,
+                      json={'name': name, 'folder': {}},
+                      headers={'Authorization': 'bearer ' + od})
+    return {'id': r.json()['id']}

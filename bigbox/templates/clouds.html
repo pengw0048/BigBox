@@ -27,7 +27,7 @@
                         <div class="clearfix"></div>
                         <p>Owner: {{ c.user_full_name }} <span class="text-muted">({{ c.email }})</span></p>
                         <div class="progress">
-                            <div class="progress-bar" style="width: {{ c.space.percent }};{% if c.space.percent > 50 %}color: white; text-shadow: 1px 1px black{% endif %}%">
+                            <div class="progress-bar" style="width: {{ c.space.percent }}%;{% if c.space.percent > 50 %}color: white; text-shadow: 1px 1px black{% endif %}%">
                                 <span>{{ c.space.used|filesizeformat }}/{% if c.space.total %}{{ c.space.total|filesizeformat }}{% else %}--{% endif %}</span>
                             </div>
                         </div>

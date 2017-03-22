@@ -13,8 +13,7 @@
         </div>
         <div class="col-xs-2">
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">Upload
-                    <span class="caret"></span></button>
+                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Upload</button>
                 <ul class="dropdown-menu">
                     <li><a tabindex="-1" href="#">Big files</a></li>
                     <li class="divider"></li>
@@ -22,6 +21,7 @@
                         <li><a class="upload-to-cloud" tabindex="-1" href="#" data-pk="{{ c.pk }}" data-classname="{{ c.cloud.class_name }}" data-path="{{ c.did }}">{{ c.display_name }}</a></li>
                     {% endfor %}
                 </ul>
+                <button class="btn btn-default" id="new-folder-button" data-toggle="modal" data-target="#new-folder-dialog"><i class="glyphicon glyphicon-folder-open"></i> New</button>
             </div>
             <div class="btn-group-vertical files-left-nav" data-toggle="buttons">
                 <label class="btn btn-sm btn-default active">
@@ -110,9 +110,9 @@
                                     <span>Clear</span>
                                 </button>
                             </div>
-                            <div class="col-xs-5 fileupload-progress fade">
+                            <div class="col-xs-5 fileupload-progress" id="master-progress-container">
                                 <div class="progress progress-striped active">
-                                    <div class="progress-bar progress-bar-info" style="width:0;"></div>
+                                    <div id="master-progress" class="progress-bar progress-bar-info" style="width:0;"><span></span></div>
                                 </div>
                                 <div class="progress-extended">&nbsp;</div>
                             </div>
@@ -120,6 +120,37 @@
                     </form>
                     <table class="table table-striped"><tbody id="file-list"></tbody></table>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="new-folder-dialog" tabindex="-1" data-path="{{ path }}">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title">Create a new folder</h4>
+                </div>
+                <form id="new-folder-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label" for="folder-name-input">Folder name</label>
+                        <input type="text" class="form-control name-input" id="folder-name-input" minlength="1" maxlength="100" placeholder="" pattern='^[^\\\/?%*:|"<>]{1,100}$'>
+                        <div class="hidden errmsg help-block">The name should not contain: \/?%*:|"<>.</div>
+                    </div>
+                    <div class="form-group btn-group" data-toggle="buttons">
+                        {% for c in acc %}
+                            <label class="btn btn-sm btn-default active">
+                                <i class="color-icon icon-left" style="background-color: {{ c.color }}"></i>
+                                <input type="checkbox" class="create-folder-pk" value="{{ c.pk }}" autocomplete="off" checked><small class="color-icon-text">{{ c.display_name }}</small>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="create-folder-button"><span class="glyphicon glyphicon-refresh spinning hidden"></span> Create</button>
+                    <a class="btn btn-default" data-dismiss="modal">Close</a>
+                </div>
+                </form>
             </div>
         </div>
     </div>
