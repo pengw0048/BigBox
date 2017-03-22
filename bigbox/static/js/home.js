@@ -119,7 +119,7 @@ $(document).ready(function () {
 
 function generateDirList(items) {
     console.log("success")
-    $("#dir_list_show").empty();
+    $("#dir_list_show").children().slice(1).remove();
     var url = '"home"'
     $(items).each(function (i, item) {
         if (url.endsWith('"')) {
