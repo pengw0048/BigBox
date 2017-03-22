@@ -41,7 +41,6 @@ function loadFolder() {
         dataType: "json",
         success: generateDirList
     });
-    $('#listr-table').prop('disabled', true);
     $("#file_list_show").children().slice(1).remove();
     $('#file-list-loader').removeClass('hidden');
     // call server for files
@@ -52,7 +51,6 @@ function loadFolder() {
         success: generateFiles,
         complete: function () {
             $('#file-list-loader').addClass('hidden');
-            $('#listr-table').prop('disabled', false);
         }
     });
 }

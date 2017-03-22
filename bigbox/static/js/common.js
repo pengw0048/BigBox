@@ -15,6 +15,7 @@ $.ajaxSetup({
     cache: true
 });
 function formatBytes (bytes) {
+    bytes = Number(bytes);
     var units = ['B', 'KB', 'MB', 'GB', 'TB'],
         i;
 
