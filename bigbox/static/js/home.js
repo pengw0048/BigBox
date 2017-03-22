@@ -118,19 +118,14 @@ $(document).ready(function () {
 });
 
 function generateDirList(items) {
-    console.log("success")
     $("#dir_list_show").children().slice(1).remove();
-    var url = '"home"'
+    var path = '/';
     $(items).each(function (i, item) {
-        if (url.endsWith('"')) {
-            url = url.substring(0, url.length - 1)
-        }
-        url = url + "/" + item.name + '/"'
+        path += item.name + '/';
         $("#dir_list_show").append(
-            '<li class="breadcrumb-item">' + '<a href=' + url + ">" + item.name + "</a></li>"
+            '<li class="breadcrumb-item">' + '<a href="/home' + path + '">' + item.name + "</a></li>"
         );
     });
-    console.log(url)
 }
 
 function generateFiles(items) {
