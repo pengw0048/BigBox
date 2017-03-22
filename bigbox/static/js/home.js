@@ -1,5 +1,7 @@
 var uploaders = [];
 var MAX_UP_THREADS = 3;
+var locale = window.navigator.userLanguage || window.navigator.language;
+if (locale) moment.locale(locale);
 $(document).on("click", ".upload-to-cloud", function () {
     var self = $(this);
     var pk = self.data("pk");
@@ -163,7 +165,7 @@ function generateFiles(items) {
         } else {
             htmlContent+=('<td class="text-xs-left" data-sort-value="' + self.size + '">' +
                 formatBytes(self.size) + "</td>" + '<td class="text-xs-left" data-sort-value="'
-                + self.time + '">' + self.time + "</td>");
+                + new Date(self.time).getTime() + '">' + moment(self.time).format('lll') + "</td>");
         }
         htmlContent+=("</tr>");
 
