@@ -41,12 +41,19 @@ function loadFolder() {
         dataType: "json",
         success: generateDirList
     });
+    $('#listr-table').prop('disabled', true);
+    $("#file_list_show").children().slice(1).remove();
+    $('#file-list-loader').removeClass('hidden');
     // call server for files
     $.ajax({
         url: "/get-files" + path,
         method: "GET",
         dataType: "json",
-        success: generateFiles
+        success: generateFiles,
+        complete: function () {
+            $('#file-list-loader').addClass('hidden');
+            $('#listr-table').prop('disabled', false);
+        }
     });
 }
 // transmit values of files and dir_list to front end
@@ -128,7 +135,6 @@ function generateDirList(items) {
 }
 
 function generateFiles(items) {
-    $("#file_list_show").empty();
     $(items).each(function (i, self) {
         var htmlContent = '<tr><td class="text-xs-left" data-sort-value="';
         if (self.is_folder) {
