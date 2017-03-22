@@ -31,6 +31,9 @@ $(document).on("click", ".upload-to-cloud", function () {
     var folder = $(this).text();
     $('#new-folder-dialog').data("path", path + folder + "/");
     loadFolder();
+}).on("click", ".folder-link-full", function() {
+    $('#new-folder-dialog').data("path", $(this).data('path'));
+    loadFolder();
 });
 function loadFolder() {
     var path = $('#new-folder-dialog').data("path");
@@ -129,7 +132,7 @@ function generateDirList(items) {
     $(items).each(function (i, item) {
         path += item.name + '/';
         $("#dir_list_show").append(
-            '<li class="breadcrumb-item">' + '<a href="/home' + path + '">' + item.name + "</a></li>"
+            '<li class="breadcrumb-item">' + '<a href="#" class="folder-link-full" data-path="'+path+'">' + item.name + "</a></li>"
         );
     });
 }
