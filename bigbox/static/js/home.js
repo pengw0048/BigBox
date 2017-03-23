@@ -84,7 +84,7 @@ $(document).ready(function () {
             file = files[i];
             $('#file-list').append('<tr><td><div class="name">' + file.name + '</div></td><td style="width:100%">'
                 + '<div class="progress active"><div class="progress-bar progress-bar-info" style="width:0"><span>'
-                + file.size.formatBytes() + '</span></div></div></td>'
+                + formatBytes(file.size) + '</span></div></div></td>'
                 + '</tr>');
             uploaders.push(new ChunkedUploader(file, $('.progress-bar').last()));
         }

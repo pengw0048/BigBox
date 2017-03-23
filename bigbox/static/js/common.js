@@ -24,9 +24,6 @@ function formatBytes(bytes) {
     }
     return bytes.toFixed(2) + units[i];
 }
-Number.prototype.formatBytes = function () {
-    formatBytes(this);
-};
 var regexName = /^[^\\\/?%*:|"<>]{1,100}$/;
 $('.name-input').on('change', function () {
     if ($(this).val().match(regexName)) {
