@@ -69,6 +69,18 @@ your email address and complete the registration of your account:
     return render(request, 'register.html', {'form': form})
 
 
+@transaction.atomic
+def confirm(request, username, token):
+    user = get_object_or_404(User, username=username)
+    if not default_token_generator.check_token(user, token):
+        return HttpResponseNotFound('Link is invalid')
+    user.is_active = True
+    user.save()
+    auth_login(request, user)
+    messages.success(request, 'Your account has been created. Welcome to Big Box!')
+    return HttpResponseRedirect(reverse('list', args=['/']))
+
+
 @login_required
 def file_list_view(request, path):
     if not path.startswith('/'):
@@ -105,66 +117,6 @@ def get_files(request, path):
     files.extend(list(folders.values()))
     fl = sorted(files, key=lambda file: ('d' if file['is_folder'] else 'f') + file['name'].lower())
     return JsonResponse(fl, safe=False)
-
-
-@transaction.atomic
-def confirm(request, username, token):
-    user = get_object_or_404(User, username=username)
-    if not default_token_generator.check_token(user, token):
-        return HttpResponseNotFound('Link is invalid')
-    user.is_active = True
-    user.save()
-    auth_login(request, user)
-    messages.success(request, 'Your account has been created. Welcome to Big Box!')
-    return HttpResponseRedirect(reverse('list', args=['/']))
-
-
-@login_required
-def storage_accounts(request):
-    user = request.user
-    clouds = CloudInterface.objects.all()
-    account_info = []
-    for acc in StorageAccount.objects.filter(user=user):
-        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-        client = getattr(mod, "get_client")(acc)
-        acc.space = getattr(mod, "get_space")(client)
-        acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
-                                else 0)
-        account_info.append(acc)
-    return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds})
-
-
-@login_required
-def add_storage_account(request, cloud):
-    cloud = get_object_or_404(CloudInterface, name=cloud)
-    fun = getattr(importlib.import_module('bigbox.' + cloud.class_name), "add_storage_account")
-    return fun(request, reverse('clouds'), cloud)
-
-
-@transaction.atomic
-@login_required
-def rename_storage_account(request):
-    if 'pk' not in request.POST or 'value' not in request.POST:
-        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
-    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
-    if acc.user != request.user:
-        return JsonResponse({'status': 'error', 'msg': 'not your account'})
-    acc.display_name = request.POST['value']
-    acc.save()
-    return JsonResponse({'status': 'ok'})
-
-
-@transaction.atomic
-@login_required
-def color_storage_account(request):
-    if 'pk' not in request.POST or 'value' not in request.POST:
-        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
-    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
-    if acc.user != request.user:
-        return JsonResponse({'status': 'error', 'msg': 'not your account'})
-    acc.color = request.POST['value']
-    acc.save()
-    return JsonResponse({'status': 'ok'})
 
 
 @login_required
@@ -214,3 +166,51 @@ def create_folder(request):
         ret = getattr(mod, "create_folder")(client, request.POST['path'].rstrip('/'), request.POST['name'])
         rets[acc.pk] = ret
     return JsonResponse(rets)
+
+
+@login_required
+def storage_accounts(request):
+    user = request.user
+    clouds = CloudInterface.objects.all()
+    account_info = []
+    for acc in StorageAccount.objects.filter(user=user):
+        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+        client = getattr(mod, "get_client")(acc)
+        acc.space = getattr(mod, "get_space")(client)
+        acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
+                                else 0)
+        account_info.append(acc)
+    return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds})
+
+
+@login_required
+def add_storage_account(request, cloud):
+    cloud = get_object_or_404(CloudInterface, name=cloud)
+    fun = getattr(importlib.import_module('bigbox.' + cloud.class_name), "add_storage_account")
+    return fun(request, reverse('clouds'), cloud)
+
+
+@transaction.atomic
+@login_required
+def rename_storage_account(request):
+    if 'pk' not in request.POST or 'value' not in request.POST:
+        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
+    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
+    if acc.user != request.user:
+        return JsonResponse({'status': 'error', 'msg': 'not your account'})
+    acc.display_name = request.POST['value']
+    acc.save()
+    return JsonResponse({'status': 'ok'})
+
+
+@transaction.atomic
+@login_required
+def color_storage_account(request):
+    if 'pk' not in request.POST or 'value' not in request.POST:
+        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
+    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
+    if acc.user != request.user:
+        return JsonResponse({'status': 'error', 'msg': 'not your account'})
+    acc.color = request.POST['value']
+    acc.save()
+    return JsonResponse({'status': 'ok'})
