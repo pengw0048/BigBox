@@ -4,9 +4,6 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.http import *
-from dropbox.dropbox import *
-from dropbox.oauth import *
-from pytz import timezone
 
 from .models import *
 
@@ -48,28 +45,34 @@ def add_storage_account(request, next_url, cloud):
         return HttpResponseRedirect(url + '?' + params)
 
 
-def get_client(acc: StorageAccount) -> Dropbox:
-    return Dropbox(acc.credentials)
+def get_client(acc: StorageAccount) -> str:
+    return acc.credentials
 
 
-def get_space(db: Dropbox) -> dict:
-    info = db.users_get_space_usage()
-    used = info.used
-    total = info.allocation.get_individual().allocated
+def get_space(db: str) -> dict:
+    r = requests.post('https://api.dropboxapi.com/2/users/get_space_usage',
+                      headers={'Authorization': 'Bearer ' + db})
+    j = r.json()
+    used = j['used']
+    total = j['allocation']['allocated']
     return {'used': used, 'total': total}
 
 
-def get_file_list(db: Dropbox, path: str) -> list:
+def get_file_list(db: str, path: str) -> list:
     ret = []
     path = path.rstrip('/')
+    r = requests.post('https://api.dropboxapi.com/2/files/list_folder',
+                      json={'path': path},
+                      headers={'Authorization': 'Bearer ' + db})
+    j = r.json()
     try:
-        for f in db.files_list_folder(path).entries:
+        for f in j['entries']:
             try:
-                if hasattr(f, 'size'):
-                    ret.append({'name': f.name, 'id': f.path_lower, 'size': f.size,
-                                'time': f.client_modified.replace(tzinfo=timezone('UTC')), 'is_folder': False})
-                else:
-                    ret.append({'name': f.name, 'id': f.path_lower, 'is_folder': True})
+                if f['.tag'] == 'file':
+                    ret.append({'name': f['name'], 'id': f['path_lower'], 'size': f['size'],
+                                'time': f['client_modified'], 'is_folder': False})
+                elif f['.tag'] == 'folder':
+                    ret.append({'name': f['name'], 'id': f['path_lower'], 'is_folder': True})
             except:
                 pass
     except:
@@ -77,18 +80,21 @@ def get_file_list(db: Dropbox, path: str) -> list:
     return ret
 
 
-def get_down_link(db: Dropbox, fid: str) -> str:
-    res = db.files_get_temporary_link(fid)
-    return res.link
+def get_down_link(db: str, fid: str) -> str:
+    r = requests.post('https://api.dropboxapi.com/2/files/get_temporary_link',
+                      json={'path': fid},
+                      headers={'Authorization': 'Bearer ' + db})
+    j = r.json()
+    return j['link']
 
 
-def get_upload_creds(db: Dropbox, data: str) -> dict:
-    return {'token': db._oauth2_access_token}
+def get_upload_creds(db: str, data: str) -> dict:
+    return {'token': db}
 
 
-def create_folder(db: Dropbox, path: str, name: str) -> dict:
-    try:
-        res = db.files_create_folder(path + '/' + name)
-        return {'id': res.id}
-    except:
-        return {}
+def create_folder(db: str, path: str, name: str) -> dict:
+    r = requests.post('https://api.dropboxapi.com/2/files/get_temporary_link',
+                      json={'path': path + '/' + name},
+                      headers={'Authorization': 'Bearer ' + db})
+    j = r.json()
+    return {'id': j['id']}
