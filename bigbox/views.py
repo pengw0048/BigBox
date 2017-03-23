@@ -83,17 +83,6 @@ def listview(request, path):
 
 
 @login_required
-def get_list(request, path):
-    dir_list = []
-    dir_base = ''
-    if len(path.strip('/')) > 0:
-        for dir in path.strip('/').split('/'):
-            dir_base += '/' + dir
-            dir_list.append({'name': dir, 'url': dir_base})
-    return JsonResponse(dir_list, safe=False)
-
-
-@login_required
 def get_files(request, path):
     user = request.user
     accs = StorageAccount.objects.filter(user=user)

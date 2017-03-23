@@ -38,15 +38,7 @@ $(document).on("click", ".upload-to-cloud", function () {
 });
 function loadFolder() {
     var path = $('#new-folder-dialog').data("path");
-    if (!path.startsWith('/')) {
-        path = '/' + path;
-    }
-    $.ajax({
-        url: "/get-list" + path,
-        method: "GET",
-        dataType: "json",
-        success: generateDirList
-    });
+    generateDirList(path);
     $("#file_list_show").children().slice(1).remove();
     $('#file-list-loader').removeClass('hidden');
     // call server for files
@@ -131,13 +123,15 @@ $(document).ready(function () {
     });
 });
 
-function generateDirList(items) {
+function generateDirList(fullpath) {
+    var items = fullpath.split("/");
     $("#dir_list_show").children().slice(1).remove();
     var path = '/';
     $(items).each(function (i, item) {
-        path += item.name + '/';
+        if (item === '') return;
+        path += item + '/';
         $("#dir_list_show").append(
-            '<li class="breadcrumb-item">' + '<a href="#" class="folder-link-full" data-path="' + path + '">' + item.name + "</a></li>"
+            '<li class="breadcrumb-item">' + '<a href="#" class="folder-link-full" data-path="' + path + '">' + item + "</a></li>"
         );
     });
 }
