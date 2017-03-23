@@ -70,12 +70,12 @@ your email address and complete the registration of your account:
 
 
 @login_required
-def listview(request, path):
+def file_list_view(request, path):
     if not path.startswith('/'):
         path += '/'
     user = request.user
-    accs = StorageAccount.objects.filter(user=user)
-    return render(request, 'home.html', {'user': user, 'acc': accs,
+    acc = StorageAccount.objects.filter(user=user)
+    return render(request, 'home.html', {'user': user, 'acc': acc,
                                          'path': path if path[-1] == '/' else path + '/'})
 
 
@@ -84,13 +84,13 @@ def get_files(request, path):
     if not path.startswith('/'):
         path += '/'
     user = request.user
-    accs = StorageAccount.objects.filter(user=user)
+    acc = StorageAccount.objects.filter(user=user)
     files = []
     folders = {}
-    for c in accs:
-        module = importlib.import_module('bigbox.' + c.cloud.class_name)
-        client = getattr(module, "get_client")(c)
-        fs = getattr(module, "get_file_list")(client, path)
+    for c in acc:
+        mod = importlib.import_module('bigbox.' + c.cloud.class_name)
+        client = getattr(mod, "get_client")(c)
+        fs = getattr(mod, "get_file_list")(client, path)
         for f in fs:
             f['colors'] = [c.color]
             if f['is_folder']:
@@ -103,7 +103,7 @@ def get_files(request, path):
                 f['id'] = quote(f['id'])
                 files.append(f)
     files.extend(list(folders.values()))
-    fl = sorted(files, key=lambda f: ('d' if f['is_folder'] else 'f') + f['name'].lower())
+    fl = sorted(files, key=lambda file: ('d' if file['is_folder'] else 'f') + file['name'].lower())
     return JsonResponse(fl, safe=False)
 
 
@@ -125,9 +125,9 @@ def storage_accounts(request):
     clouds = CloudInterface.objects.all()
     account_info = []
     for acc in StorageAccount.objects.filter(user=user):
-        module = importlib.import_module('bigbox.' + acc.cloud.class_name)
-        client = getattr(module, "get_client")(acc)
-        acc.space = getattr(module, "get_space")(client)
+        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+        client = getattr(mod, "get_client")(acc)
+        acc.space = getattr(mod, "get_space")(client)
         acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
                                 else 0)
         account_info.append(acc)
@@ -174,10 +174,10 @@ def get_download_link(request):
     acc = get_object_or_404(StorageAccount, pk=request.GET['pk'])
     if acc.user != request.user:
         return HttpResponseForbidden('not your account')
-    module = importlib.import_module('bigbox.' + acc.cloud.class_name)
-    client = getattr(module, "get_client")(acc)
+    mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+    client = getattr(mod, "get_client")(acc)
     try:
-        link = getattr(module, "get_down_link")(client, request.GET['id'])
+        link = getattr(mod, "get_down_link")(client, request.GET['id'])
         return HttpResponseRedirect(link)
     except Exception as e:
         return HttpResponseBadRequest(str(e))
@@ -191,9 +191,9 @@ def get_upload_creds(request):
     if acc.user != request.user:
         return JsonResponse({'status': 'error', 'msg': 'not your account'})
     data = request.GET.get('data', None)
-    module = importlib.import_module('bigbox.' + acc.cloud.class_name)
-    client = getattr(module, "get_client")(acc)
-    creds = getattr(module, "get_upload_creds")(client, data)
+    mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+    client = getattr(mod, "get_client")(acc)
+    creds = getattr(mod, "get_upload_creds")(client, data)
     return JsonResponse(creds)
 
 
@@ -209,8 +209,8 @@ def create_folder(request):
         accs.append(acc)
     rets = {}
     for acc in accs:
-        module = importlib.import_module('bigbox.' + acc.cloud.class_name)
-        client = getattr(module, "get_client")(acc)
-        ret = getattr(module, "create_folder")(client, request.POST['path'].rstrip('/'), request.POST['name'])
+        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+        client = getattr(mod, "get_client")(acc)
+        ret = getattr(mod, "create_folder")(client, request.POST['path'].rstrip('/'), request.POST['name'])
         rets[acc.pk] = ret
     return JsonResponse(rets)
