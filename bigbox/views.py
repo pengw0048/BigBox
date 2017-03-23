@@ -81,6 +81,8 @@ def listview(request, path):
 
 @login_required
 def get_files(request, path):
+    if not path.startswith('/'):
+        path += '/'
     user = request.user
     accs = StorageAccount.objects.filter(user=user)
     files = []
