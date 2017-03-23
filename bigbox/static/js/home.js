@@ -27,12 +27,12 @@ $(document).on("click", ".upload-to-cloud", function () {
     });
     $("#upload-to").text(dname);
     $("#upload-dialog").modal();
-}).on("click", ".folder-link", function() {
+}).on("click", ".folder-link", function () {
     var path = $('#new-folder-dialog').data("path");
     var folder = $(this).text();
     $('#new-folder-dialog').data("path", path + folder + "/");
     loadFolder();
-}).on("click", ".folder-link-full", function() {
+}).on("click", ".folder-link-full", function () {
     $('#new-folder-dialog').data("path", $(this).data('path'));
     loadFolder();
 });
@@ -137,7 +137,7 @@ function generateDirList(items) {
     $(items).each(function (i, item) {
         path += item.name + '/';
         $("#dir_list_show").append(
-            '<li class="breadcrumb-item">' + '<a href="#" class="folder-link-full" data-path="'+path+'">' + item.name + "</a></li>"
+            '<li class="breadcrumb-item">' + '<a href="#" class="folder-link-full" data-path="' + path + '">' + item.name + "</a></li>"
         );
     });
 }
@@ -146,36 +146,36 @@ function generateFiles(items) {
     $(items).each(function (i, self) {
         var htmlContent = '<tr><td class="text-xs-left" data-sort-value="';
         if (self.is_folder) {
-            htmlContent+=("d");
+            htmlContent += ("d");
         } else {
-            htmlContent+=("f");
+            htmlContent += ("f");
         }
-        htmlContent+=(self.name.toLowerCase() + '">' + '<i class="fa fa-fw');
+        htmlContent += (self.name.toLowerCase() + '">' + '<i class="fa fa-fw');
         if (self.is_folder) {
-            htmlContent+=(" fa-folder");
+            htmlContent += (" fa-folder");
         } else {
-            htmlContent+=(" fa-file-o");
+            htmlContent += (" fa-file-o");
         }
-        htmlContent+=('"></i> &nbsp;<a href="');
+        htmlContent += ('"></i> &nbsp;<a href="');
         if (self.is_folder) {
-            htmlContent+=('#" class="folder-link">');
+            htmlContent += ('#" class="folder-link">');
         } else {
-            htmlContent+=('/get-down?pk=' + self.acc + '&id=' + self.id + '" target="_blank">');
+            htmlContent += ('/get-down?pk=' + self.acc + '&id=' + self.id + '" target="_blank">');
         }
-        htmlContent+=(self.name + '</a><span class="pull-right">');
+        htmlContent += (self.name + '</a><span class="pull-right">');
         for (var c in self.clouds) {
-            htmlContent+=(' <i class="color-icon" style="background-color: ' + self.clouds[c] + '"></i>');
+            htmlContent += (' <i class="color-icon" style="background-color: ' + self.clouds[c] + '"></i>');
         }
-        htmlContent+=("</span></td>");
+        htmlContent += ("</span></td>");
         if (self.is_folder) {
-            htmlContent+=('<td class="text-xs-left" data-sort-value="-1">-</td>' +
-                '<td class="text-xs-left" data-sort-value="-1">-</td>');
+            htmlContent += ('<td class="text-xs-left" data-sort-value="-1">-</td>' +
+            '<td class="text-xs-left" data-sort-value="-1">-</td>');
         } else {
-            htmlContent+=('<td class="text-xs-left" data-sort-value="' + self.size + '">' +
-                formatBytes(self.size) + "</td>" + '<td class="text-xs-left" data-sort-value="'
-                + new Date(self.time).getTime() + '">' + moment(self.time).format('lll') + "</td>");
+            htmlContent += ('<td class="text-xs-left" data-sort-value="' + self.size + '">' +
+            formatBytes(self.size) + "</td>" + '<td class="text-xs-left" data-sort-value="'
+            + new Date(self.time).getTime() + '">' + moment(self.time).format('lll') + "</td>");
         }
-        htmlContent+=("</tr>");
+        htmlContent += ("</tr>");
 
         $("#file_list_show").append(htmlContent);
     });

@@ -1,19 +1,19 @@
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.http import *
-from django.core.urlresolvers import reverse
-from .forms import *
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib import messages
-from django.contrib.auth.models import User
-from django.db import transaction
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import *
 import importlib
 from urllib.parse import quote
-from django.core import serializers
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.http import *
+from django.shortcuts import render, get_object_or_404
+
+from .forms import *
+from .models import *
 
 
 def login(request):
@@ -87,7 +87,7 @@ def listview2(request, path):
     files = []
     folders = {}
     for c in accs:
-        module = importlib.import_module('bigbox.'+c.cloud.class_name)
+        module = importlib.import_module('bigbox.' + c.cloud.class_name)
         client = getattr(module, "get_client")(c)
         fs = getattr(module, "get_file_list")(client, path)
         for f in fs:
@@ -106,12 +106,14 @@ def listview2(request, path):
     return render(request, 'home.html', {'user': user, 'acc': accs, 'files': fl, 'dir_list': dir_list,
                                          'path': path if path[-1] == '/' else path + '/'})
 
+
 @login_required
 def listview(request, path):
     user = request.user
     accs = StorageAccount.objects.filter(user=user)
     return render(request, 'home.html', {'user': user, 'acc': accs,
                                          'path': path if path[-1] == '/' else path + '/'})
+
 
 @login_required
 def get_list(request, path):
@@ -123,14 +125,15 @@ def get_list(request, path):
             dir_list.append({'name': dir, 'url': dir_base})
     return JsonResponse(dir_list, safe=False)
 
+
 @login_required
-def get_files(request, path) :
+def get_files(request, path):
     user = request.user
     accs = StorageAccount.objects.filter(user=user)
     files = []
     folders = {}
     for c in accs:
-        module = importlib.import_module('bigbox.'+c.cloud.class_name)
+        module = importlib.import_module('bigbox.' + c.cloud.class_name)
         client = getattr(module, "get_client")(c)
         fs = getattr(module, "get_file_list")(client, path)
         for f in fs:
@@ -167,7 +170,7 @@ def storage_accounts(request):
     clouds = CloudInterface.objects.all()
     account_info = []
     for acc in StorageAccount.objects.filter(user=user):
-        module = importlib.import_module('bigbox.'+acc.cloud.class_name)
+        module = importlib.import_module('bigbox.' + acc.cloud.class_name)
         client = getattr(module, "get_client")(acc)
         acc.space = getattr(module, "get_space")(client)
         acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
@@ -179,7 +182,7 @@ def storage_accounts(request):
 @login_required
 def add_storage_account(request, cloud):
     cloud = get_object_or_404(CloudInterface, name=cloud)
-    fun = getattr(importlib.import_module('bigbox.'+cloud.class_name), "add_storage_account")
+    fun = getattr(importlib.import_module('bigbox.' + cloud.class_name), "add_storage_account")
     return fun(request, reverse('clouds'), cloud)
 
 
@@ -216,7 +219,7 @@ def get_download_link(request):
     acc = get_object_or_404(StorageAccount, pk=request.GET['pk'])
     if acc.user != request.user:
         return HttpResponseForbidden('not your account')
-    module = importlib.import_module('bigbox.'+acc.cloud.class_name)
+    module = importlib.import_module('bigbox.' + acc.cloud.class_name)
     client = getattr(module, "get_client")(acc)
     try:
         link = getattr(module, "get_down_link")(client, request.GET['id'])
@@ -233,7 +236,7 @@ def get_upload_creds(request):
     if acc.user != request.user:
         return JsonResponse({'status': 'error', 'msg': 'not your account'})
     data = request.GET.get('data', None)
-    module = importlib.import_module('bigbox.'+acc.cloud.class_name)
+    module = importlib.import_module('bigbox.' + acc.cloud.class_name)
     client = getattr(module, "get_client")(acc)
     creds = getattr(module, "get_upload_creds")(client, data)
     return JsonResponse(creds)
@@ -251,7 +254,7 @@ def create_folder(request):
         accs.append(acc)
     rets = {}
     for acc in accs:
-        module = importlib.import_module('bigbox.'+acc.cloud.class_name)
+        module = importlib.import_module('bigbox.' + acc.cloud.class_name)
         client = getattr(module, "get_client")(acc)
         ret = getattr(module, "create_folder")(client, request.POST['path'].rstrip('/'), request.POST['name'])
         rets[acc.pk] = ret

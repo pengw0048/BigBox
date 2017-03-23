@@ -1,12 +1,14 @@
-from django.http import *
-from django.conf import settings
-from django.contrib import messages
-from .models import *
-import requests
 import json
-from dateutil import parser
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
+
+import requests
+from dateutil import parser
+from django.conf import settings
+from django.contrib import messages
+from django.http import *
+
+from .models import *
 
 
 def add_storage_account(request, next_url, cloud):

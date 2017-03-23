@@ -14,7 +14,7 @@ $.ajaxSetup({
     },
     cache: true
 });
-function formatBytes (bytes) {
+function formatBytes(bytes) {
     bytes = Number(bytes);
     var units = ['B', 'KB', 'MB', 'GB', 'TB'],
         i;
@@ -24,7 +24,7 @@ function formatBytes (bytes) {
     }
     return bytes.toFixed(2) + units[i];
 }
-Number.prototype.formatBytes = function() {
+Number.prototype.formatBytes = function () {
     formatBytes(this);
 };
 var regexName = /^[^\\\/?%*:|"<>]{1,100}$/;

@@ -1,7 +1,8 @@
 from django.conf.urls import url
-from . import views
 from django.contrib.auth.views import logout_then_login
 from django.core.urlresolvers import reverse_lazy
+
+from . import views
 
 urlpatterns = [
     url(r'^$', views.login, name='root'),

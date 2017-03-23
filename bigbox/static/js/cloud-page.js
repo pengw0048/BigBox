@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
     $('.editable-text').editable();
     $('.color-picker').each(function () {
         $(this).colorpicker('setValue', $(this).children().first().css('background-color'));

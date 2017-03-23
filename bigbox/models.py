@@ -1,7 +1,8 @@
-from django.db import models
-from django.contrib.auth.models import User
 from colorsys import hls_to_rgb
 from random import random
+
+from django.contrib.auth.models import User
+from django.db import models
 
 
 class CloudInterface(models.Model):

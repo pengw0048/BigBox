@@ -1,10 +1,11 @@
-from django.http import *
 from django.conf import settings
 from django.contrib import messages
-from dropbox.oauth import *
+from django.http import *
 from dropbox.dropbox import *
-from .models import *
+from dropbox.oauth import *
 from pytz import timezone
+
+from .models import *
 
 
 def get_dropbox_auth_flow(web_app_session):

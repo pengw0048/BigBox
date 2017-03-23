@@ -1,12 +1,14 @@
-from django.http import *
-from django.conf import settings
-from django.contrib import messages
-from .models import *
-from dateutil import parser
 import json
 from datetime import datetime, timedelta, timezone
-import requests
 from urllib.parse import urlencode
+
+import requests
+from dateutil import parser
+from django.conf import settings
+from django.contrib import messages
+from django.http import *
+
+from .models import *
 
 
 def add_storage_account(request, next_url, cloud):
@@ -103,7 +105,7 @@ def find_path_id(g: str, path: str, create: bool = False) -> str:
 
 
 def create_folder(g: str, path: str, name: str) -> dict:
-    if path == 'root' or path+name == '' or path+name == '/':
+    if path == 'root' or path + name == '' or path + name == '/':
         return {'id': 'root'}
     fullpath = path if name == '' else path + '/' + name
     return {'id': find_path_id(g, fullpath, True)}
