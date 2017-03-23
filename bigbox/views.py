@@ -1,4 +1,6 @@
 import importlib
+from concurrent.futures.thread import ThreadPoolExecutor
+from concurrent.futures import as_completed
 from urllib.parse import quote
 
 from django.conf import settings
@@ -91,6 +93,13 @@ def file_list_view(request, path):
                                          'path': path if path[-1] == '/' else path + '/'})
 
 
+def get_file_list(c, path):
+    mod = importlib.import_module('bigbox.' + c.cloud.class_name)
+    client = getattr(mod, "get_client")(c)
+    fs = getattr(mod, "get_file_list")(client, path)
+    return fs
+
+
 @login_required
 def get_files(request, path):
     if not path.startswith('/'):
@@ -99,21 +108,22 @@ def get_files(request, path):
     acc = StorageAccount.objects.filter(user=user)
     files = []
     folders = {}
-    for c in acc:
-        mod = importlib.import_module('bigbox.' + c.cloud.class_name)
-        client = getattr(mod, "get_client")(c)
-        fs = getattr(mod, "get_file_list")(client, path)
-        for f in fs:
-            f['colors'] = [c.color]
-            if f['is_folder']:
-                if f['name'] in folders:
-                    folders[f['name']]['colors'].append(c.color)
+    with ThreadPoolExecutor() as executor:
+        future_to_files = {executor.submit(get_file_list, c, path): c for c in acc}
+        for future in as_completed(future_to_files):
+            c = future_to_files[future]
+            fs = future.result()
+            for f in fs:
+                f['colors'] = [c.color]
+                if f['is_folder']:
+                    if f['name'] in folders:
+                        folders[f['name']]['colors'].append(c.color)
+                    else:
+                        folders[f['name']] = f
                 else:
-                    folders[f['name']] = f
-            else:
-                f['acc'] = c.pk
-                f['id'] = quote(f['id'])
-                files.append(f)
+                    f['acc'] = c.pk
+                    f['id'] = quote(f['id'])
+                    files.append(f)
     files.extend(list(folders.values()))
     fl = sorted(files, key=lambda file: ('d' if file['is_folder'] else 'f') + file['name'].lower())
     return JsonResponse(fl, safe=False)
