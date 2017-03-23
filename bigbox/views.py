@@ -75,39 +75,6 @@ def home(request):
 
 
 @login_required
-def listview2(request, path):
-    dir_list = []
-    dir_base = ''
-    if len(path.strip('/')) > 0:
-        for dir in path.strip('/').split('/'):
-            dir_base += '/' + dir
-            dir_list.append({'name': dir, 'url': dir_base})
-    user = request.user
-    accs = StorageAccount.objects.filter(user=user)
-    files = []
-    folders = {}
-    for c in accs:
-        module = importlib.import_module('bigbox.' + c.cloud.class_name)
-        client = getattr(module, "get_client")(c)
-        fs = getattr(module, "get_file_list")(client, path)
-        for f in fs:
-            f['clouds'] = [c]
-            if f['is_folder']:
-                if f['name'] in folders:
-                    folders[f['name']]['clouds'].append(c)
-                else:
-                    folders[f['name']] = f
-            else:
-                f['acc'] = c
-                f['id'] = quote(f['id'])
-                files.append(f)
-    files.extend(list(folders.values()))
-    fl = sorted(files, key=lambda f: ('d' if f['is_folder'] else 'f') + f['name'].lower())
-    return render(request, 'home.html', {'user': user, 'acc': accs, 'files': fl, 'dir_list': dir_list,
-                                         'path': path if path[-1] == '/' else path + '/'})
-
-
-@login_required
 def listview(request, path):
     user = request.user
     accs = StorageAccount.objects.filter(user=user)
