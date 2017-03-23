@@ -93,10 +93,10 @@ def get_files(request, path):
         client = getattr(module, "get_client")(c)
         fs = getattr(module, "get_file_list")(client, path)
         for f in fs:
-            f['clouds'] = [c.color]
+            f['colors'] = [c.color]
             if f['is_folder']:
                 if f['name'] in folders:
-                    folders[f['name']]['clouds'].append(c.color)
+                    folders[f['name']]['colors'].append(c.color)
                 else:
                     folders[f['name']] = f
             else:

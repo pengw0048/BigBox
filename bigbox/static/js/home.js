@@ -157,8 +157,8 @@ function generateFiles(items) {
             htmlContent += ('/get-down?pk=' + self.acc + '&id=' + self.id + '" target="_blank">');
         }
         htmlContent += (self.name + '</a><span class="pull-right">');
-        for (var c in self.clouds) {
-            htmlContent += (' <i class="color-icon" style="background-color: ' + self.clouds[c] + '"></i>');
+        for (var j = 0; j < self.colors.length; j++) {
+            htmlContent += (' <i class="color-icon" style="background-color: ' + self.colors[j] + '"></i>');
         }
         htmlContent += ("</span></td>");
         if (self.is_folder) {
