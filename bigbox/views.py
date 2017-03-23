@@ -18,7 +18,7 @@ from .models import *
 
 def login(request):
     if request.user.is_authenticated:
-        return HttpResponseRedirect(reverse('home'))
+        return HttpResponseRedirect(reverse('list', args=['/']))
     elif request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -31,7 +31,7 @@ def login(request):
                     return HttpResponseRedirect(request.GET['next'])
                 else:
                     messages.success(request, 'Successfully logged in. Welcome to Big Box!')
-                    return HttpResponseRedirect(reverse('home'))
+                    return HttpResponseRedirect(reverse('list', args=['/']))
     else:
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
@@ -39,7 +39,7 @@ def login(request):
 
 def register(request):
     if request.user.is_authenticated:
-        return HttpResponseRedirect(reverse('home'))
+        return HttpResponseRedirect(reverse('list', args=['/']))
     elif request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -70,12 +70,9 @@ your email address and complete the registration of your account:
 
 
 @login_required
-def home(request):
-    return listview(request, '/')
-
-
-@login_required
 def listview(request, path):
+    if not path.startswith('/'):
+        path += '/'
     user = request.user
     accs = StorageAccount.objects.filter(user=user)
     return render(request, 'home.html', {'user': user, 'acc': accs,
@@ -117,7 +114,7 @@ def confirm(request, username, token):
     user.save()
     auth_login(request, user)
     messages.success(request, 'Your account has been created. Welcome to Big Box!')
-    return HttpResponseRedirect(reverse('home'))
+    return HttpResponseRedirect(reverse('list', args=['/']))
 
 
 @login_required

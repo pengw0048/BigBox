@@ -11,7 +11,7 @@
             </div>
             <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    <li {% if active_home %}class="active"{% endif %}><a href="{% url 'home' %}">My Box</a></li>
+                    <li {% if active_home %}class="active"{% endif %}><a href="{% url 'list' '/' %}">My Box</a></li>
                     <li {% if active_clouds %}class="active"{% endif %}><a href="{% url 'clouds' %}">Clouds</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
