@@ -34,8 +34,11 @@ $(document).on("click", ".upload-to-cloud", function () {
     window.history.pushState(path + folder + "/", null, "/home" + path + folder + "/");
     $('#new-folder-dialog').data("path", path + folder + "/");
     loadFolder();
-}).on("click", ".folder-link-full", function () {
+}).on("click", ".folder-link-full", function (e) {
+    e.preventDefault();
     $('#new-folder-dialog').data("path", $(this).data('path'));
+    var path = $('#new-folder-dialog').data("path");
+    window.history.pushState(path, null, "/home" + path);
     loadFolder();
 });
 window.onpopstate = function(event) {

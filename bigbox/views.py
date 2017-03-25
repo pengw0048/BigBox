@@ -102,7 +102,7 @@ def normalize_path(path: str) -> str:
     if not path.startswith('/'):
         path = '/' + path
     if not path.endswith('/'):
-        path += path + '/'
+        path += '/'
     return path
 
 
