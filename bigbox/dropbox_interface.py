@@ -94,7 +94,7 @@ def get_upload_creds(db: str, data: str) -> dict:
 
 def create_folder(db: str, path: str, name: str) -> dict:
     r = requests.post('https://api.dropboxapi.com/2/files/create_folder',
-                      json={'path': path + '/' + name},
+                      json={'path': path + name},
                       headers={'Authorization': 'Bearer ' + db})
     j = r.json()
     if 'error' in j and 'path' in j['error'] and 'conflict' in j['error']['path']:

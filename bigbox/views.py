@@ -251,7 +251,7 @@ def create_folder(request: WSGIRequest) -> JsonResponse:
         try:
             mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
             client = getattr(mod, "get_client")(acc)
-            ret = getattr(mod, "create_folder")(client, path.rstrip('/'), request.POST['name'])
+            ret = getattr(mod, "create_folder")(client, path, request.POST['name'])
         except Exception as e:
             print(str(e))
             rets[acc.pk] = {'error': str(e)}

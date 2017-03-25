@@ -134,10 +134,10 @@ def get_upload_creds(od: str, data: str) -> dict:
 
 
 def create_folder(od: str, path: str, name: str) -> dict:
-    if path == '':
+    if path == '/':
         path = 'drive/root/children'
     else:
-        path = 'drive/root:' + path + ':/children'
+        path = 'drive/root:' + path.rstrip('/') + ':/children'
     r = requests.post(settings.ONEDRIVE_BASE_URL + path,
                       json={'name': name, 'folder': {}},
                       headers={'Authorization': 'bearer ' + od})
