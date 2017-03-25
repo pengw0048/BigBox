@@ -27,15 +27,22 @@ $(document).on("click", ".upload-to-cloud", function () {
     });
     $("#upload-to").text(dname);
     $("#upload-dialog").modal();
-}).on("click", ".folder-link", function () {
+}).on("click", ".folder-link", function (e) {
+    e.preventDefault();
     var path = $('#new-folder-dialog').data("path");
     var folder = $(this).text();
+    window.history.pushState(path + folder + "/", null, "/home" + path + folder + "/");
     $('#new-folder-dialog').data("path", path + folder + "/");
     loadFolder();
 }).on("click", ".folder-link-full", function () {
     $('#new-folder-dialog').data("path", $(this).data('path'));
     loadFolder();
 });
+window.onpopstate = function(event) {
+    var url = event.state;
+    $('#new-folder-dialog').data("path",url);
+    loadFolder();
+}
 function loadFolder() {
     var path = $('#new-folder-dialog').data("path");
     generateDirList(path);
@@ -47,13 +54,21 @@ function loadFolder() {
         method: "GET",
         dataType: "json",
         success: generateFiles,
+        //function(data) {
+         //   console.log(data)
+           // generateFiles(data);
+         //   changeAddr(path);
+        //}
         complete: function () {
             $('#file-list-loader').addClass('hidden');
         }
     });
 }
+
 // transmit values of files and dir_list to front end
 $(document).ready(function () {
+    var path = $('#new-folder-dialog').data('path');
+    history.replaceState(path, null, "/home"+path);
     $('#master-progress-container').hide();
     // call server for dir_list
     loadFolder();
@@ -137,6 +152,7 @@ function generateDirList(fullpath) {
 }
 
 function generateFiles(items) {
+    console.log(items)
     $(items).each(function (i, self) {
         var htmlContent = '<tr><td class="text-xs-left" data-sort-value="';
         if (self.is_folder) {
