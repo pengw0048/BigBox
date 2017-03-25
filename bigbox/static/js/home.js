@@ -111,7 +111,7 @@ $(document).ready(function () {
             traditional: true,
             complete: function () {
                 $('#new-folder-dialog').modal('hide');
-                loadFolder();
+                $('#create-folder-button').prop('disabled', false).children('span').addClass('hidden');
             }
         })
     });
