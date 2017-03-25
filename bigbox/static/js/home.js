@@ -73,6 +73,7 @@ $(document).ready(function () {
     // call server for dir_list
     loadFolder();
     $('#new-folder-dialog').on('hide.bs.modal', function () {
+        $('#folder-name-input').val('');
         loadFolder();
     });
     $('#upload-dialog').on('show.bs.modal', function () {
@@ -126,7 +127,7 @@ $(document).ready(function () {
             traditional: true,
             complete: function () {
                 $('#new-folder-dialog').modal('hide');
-                loadFolder();
+                $('#create-folder-button').prop('disabled', false).children('span').addClass('hidden');
             }
         })
     });
