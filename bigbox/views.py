@@ -2,6 +2,7 @@ import importlib
 from concurrent.futures.thread import ThreadPoolExecutor
 from concurrent.futures import as_completed
 from urllib.parse import quote
+from typing import *
 
 from django.conf import settings
 from django.contrib import messages
@@ -12,11 +13,14 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http import *
+from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render, get_object_or_404
 
 from .forms import *
 from .models import *
 
+
+# user account related operations
 
 def login(request):
     if request.user.is_authenticated:
@@ -83,100 +87,180 @@ def confirm(request, username, token):
     return HttpResponseRedirect(reverse('list', args=['/']))
 
 
-@login_required
-def file_list_view(request, path):
+# file list related operations
+
+def normalize_path(path: str) -> str:
+    """
+    A helper function that transforms path into the unified format our system adopts:
+    The path to a folder has slashes on both sides;
+    The path to a file has a slash on the right but no slash on the left;
+    The root folder is '/'.
+    
+    :param path: the path to be transformed
+    :return: a normalized path
+    """
     if not path.startswith('/'):
-        path += '/'
+        path = '/' + path
+    if not path.endswith('/'):
+        path += path + '/'
+    return path
+
+
+@login_required
+def file_list_view(request: WSGIRequest, path: str) -> HttpResponse:
+    """
+    Renders the file list HTML with navbar, upload buttons, list of storage accounts (with color legends), and empty
+    breadcrumb folder list and file list, which will be filled in by AJAX at client side.
+    
+    :param request: the wsgi request object
+    :param path: the path of folder to display at beginning; later AJAX will load other folders
+    :return: a rendered HTML from home.html
+    """
+    path = normalize_path(path)
     user = request.user
     acc = StorageAccount.objects.filter(user=user)
     return render(request, 'home.html', {'user': user, 'acc': acc,
                                          'path': path if path[-1] == '/' else path + '/'})
 
 
-def get_file_list(c, path):
-    mod = importlib.import_module('bigbox.' + c.cloud.class_name)
-    client = getattr(mod, "get_client")(c)
-    fs = getattr(mod, "get_file_list")(client, path)
-    return fs
+def get_file_list(c: StorageAccount, path: str) -> List[dict]:
+    """
+    A helper function that gets the contents under given path (if it is a folder) on cloud account c.
+    
+    :param c: the storage account to use
+    :param path: path to the folder to look at
+    :return: a list of files, each represented by a dict with 'name': str, 'id': str, 'is_folder': bool;
+    when 'is_folder' == False, there will be 'size': int, 'time': datetime; returns [] on exceptions
+    """
+    path = normalize_path(path)
+    try:
+        mod = importlib.import_module('bigbox.' + c.cloud.class_name)
+        client = getattr(mod, "get_client")(c)
+        fs = getattr(mod, "get_file_list")(client, path)
+    except Exception as e:
+        print(str(e))
+        return []
+    else:
+        return fs
 
 
 @login_required
-def get_files(request, path):
-    if not path.startswith('/'):
-        path += '/'
+def get_files(request: WSGIRequest, path: str) -> JsonResponse:
+    """
+    Returns a json with all files and folders under a given path on all cloud accounts of this user
+    
+    :param request: the wsgi request object
+    :param path: path to the folder to look at
+    :return: a response with the json of an array of files; in addition to all properties returned by get_file_list,
+    an entry also has 'colors': List[str] (representing which cloud it is in), 'acc': int (the pk of associated account)
+    """
+    path = normalize_path(path)
     user = request.user
     acc = StorageAccount.objects.filter(user=user)
     files = []
     folders = {}
-    with ThreadPoolExecutor() as executor:
-        future_to_files = {executor.submit(get_file_list, c, path): c for c in acc}
-        for future in as_completed(future_to_files):
-            c = future_to_files[future]
-            fs = future.result()
-            for f in fs:
-                f['colors'] = [c.color]
-                if f['is_folder']:
-                    if f['name'] in folders:
-                        folders[f['name']]['colors'].append(c.color)
-                    else:
-                        folders[f['name']] = f
-                else:
-                    f['acc'] = c.pk
-                    f['id'] = quote(f['id'])
-                    files.append(f)
-    files.extend(list(folders.values()))
-    fl = sorted(files, key=lambda file: ('d' if file['is_folder'] else 'f') + file['name'].lower())
-    return JsonResponse(fl, safe=False)
-
-
-@login_required
-def get_download_link(request):
-    if 'pk' not in request.GET or 'id' not in request.GET:
-        return HttpResponseBadRequest('missing fields')
-    acc = get_object_or_404(StorageAccount, pk=request.GET['pk'])
-    if acc.user != request.user:
-        return HttpResponseForbidden('not your account')
-    mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-    client = getattr(mod, "get_client")(acc)
     try:
-        link = getattr(mod, "get_down_link")(client, request.GET['id'])
-        return HttpResponseRedirect(link)
+        with ThreadPoolExecutor() as executor:
+            future_to_files = {executor.submit(get_file_list, c, path): c for c in acc}
+            for future in as_completed(future_to_files):
+                c = future_to_files[future]
+                fs = future.result()
+                for f in fs:
+                    f['colors'] = [c.color]
+                    if f['is_folder']:
+                        if f['name'] in folders:
+                            folders[f['name']]['colors'].append(c.color)
+                        else:
+                            folders[f['name']] = f
+                    else:
+                        f['acc'] = c.pk
+                        files.append(f)
     except Exception as e:
+        print(str(e))
+        return JsonResponse({'error': str(e)})
+    else:
+        files.extend(list(folders.values()))
+        fl = sorted(files, key=lambda file: ('d' if file['is_folder'] else 'f') + file['name'].lower())
+        return JsonResponse(fl, safe=False)
+
+
+@login_required
+def get_download_link(request: WSGIRequest) -> HttpResponse:
+    """
+    For a given pk of storage account and a file id, return (redirection to) its temporary download link.
+    Expects 'pk' and 'id' in request.GET.
+    
+    :param request: the wsgi request object
+    :return: an HTTP redirection to the download link
+    """
+    acc = get_object_or_404(StorageAccount, pk=request.GET.get('pk', ''), user=request.user)
+    try:
+        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+        client = getattr(mod, "get_client")(acc)
+        link = getattr(mod, "get_down_link")(client, request.GET.get('id', ''))
+    except Exception as e:
+        print(str(e))
         return HttpResponseBadRequest(str(e))
+    else:
+        if not link:
+            return HttpResponseNotFound()
+        else:
+            return HttpResponseRedirect(link)
 
 
 @login_required
-def get_upload_creds(request):
-    if 'pk' not in request.GET:
-        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
-    acc = get_object_or_404(StorageAccount, pk=request.GET['pk'])
-    if acc.user != request.user:
-        return JsonResponse({'status': 'error', 'msg': 'not your account'})
+def get_upload_creds(request: WSGIRequest) -> JsonResponse:
+    """
+    For a given pk of storage account, return the necessary credentials as a cloud interface thinks necessary given
+    provided data. Expects 'pk' and 'data' (optional) in request.GET.
+    
+    :param request: the wsgi request object
+    :return: a response with the json of whatever the cloud interface wants to hand over to its javascript
+    """
+    acc = get_object_or_404(StorageAccount, pk=request.GET.get('pk', ''), user=request.user)
     data = request.GET.get('data', None)
-    mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-    client = getattr(mod, "get_client")(acc)
-    creds = getattr(mod, "get_upload_creds")(client, data)
-    return JsonResponse(creds)
+    try:
+        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+        client = getattr(mod, "get_client")(acc)
+        creds = getattr(mod, "get_upload_creds")(client, data)
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({'error': str(e)})
+    else:
+        return JsonResponse(creds)
 
 
 @login_required
-def create_folder(request):
-    if 'pk' not in request.POST or 'path' not in request.POST or 'name' not in request.POST:
-        return JsonResponse({'status': 'error', 'msg': 'missing fields'})
+def create_folder(request: WSGIRequest) -> JsonResponse:
+    """
+    For a given pk of storage account, create a folder 'name' under 'path'. Expects 'pk' (can be multiple), 'path',
+    'name' (optional) in request.POST.
+    
+    :param request: the wsgi request object
+    :return: a response with the json of an array of the ids of the newly created folder corresponding to pks
+    """
+    if 'path' not in request.POST or 'name' not in request.POST:
+        return JsonResponse({'error': 'missing fields'})
+    path = normalize_path(request.POST['path'])
     accs = []
     for pk in request.POST.getlist('pk'):
-        acc = get_object_or_404(StorageAccount, pk=pk)
-        if acc.user != request.user:
-            return JsonResponse({'status': 'error', 'msg': 'not your account'})
+        acc = get_object_or_404(StorageAccount, pk=pk, user=request.user)
         accs.append(acc)
     rets = {}
     for acc in accs:
-        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-        client = getattr(mod, "get_client")(acc)
-        ret = getattr(mod, "create_folder")(client, request.POST['path'].rstrip('/'), request.POST['name'])
-        rets[acc.pk] = ret
+        try:
+            mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+            client = getattr(mod, "get_client")(acc)
+            ret = getattr(mod, "create_folder")(client, path.rstrip('/'), request.POST['name'])
+        except Exception as e:
+            print(str(e))
+            rets[acc.pk] = {'error': str(e)}
+        else:
+            rets[acc.pk] = ret
     return JsonResponse(rets)
 
+
+# storage account related operations
 
 @login_required
 def storage_accounts(request):
