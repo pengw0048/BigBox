@@ -97,4 +97,6 @@ def create_folder(db: str, path: str, name: str) -> dict:
                       json={'path': path + '/' + name},
                       headers={'Authorization': 'Bearer ' + db})
     j = r.json()
+    if 'error' in j and 'path' in j['error'] and 'conflict' in j['error']['path']:
+        return {'id': ''}
     return {'id': j['id']}

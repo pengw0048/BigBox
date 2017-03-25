@@ -58,6 +58,7 @@ $(document).ready(function () {
     // call server for dir_list
     loadFolder();
     $('#new-folder-dialog').on('hide.bs.modal', function () {
+        $('#folder-name-input').val('');
         loadFolder();
     });
     $('#upload-dialog').on('show.bs.modal', function () {
