@@ -237,7 +237,7 @@ def create_folder(request: WSGIRequest) -> JsonResponse:
     'name' (optional) in request.POST.
     
     :param request: the wsgi request object
-    :return: a response with the json of an array of the ids of the newly created folder corresponding to pks
+    :return: a response with the json of a dict of the ids of the newly created folder with pks as keys
     """
     if 'path' not in request.POST or 'name' not in request.POST:
         return JsonResponse({'error': 'missing fields'})
