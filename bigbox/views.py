@@ -1,7 +1,6 @@
 import importlib
 from concurrent.futures.thread import ThreadPoolExecutor
 from concurrent.futures import as_completed
-from urllib.parse import quote
 from typing import *
 
 from django.conf import settings
@@ -263,35 +262,65 @@ def create_folder(request: WSGIRequest) -> JsonResponse:
 # storage account related operations
 
 @login_required
-def storage_accounts(request):
+def storage_accounts(request: WSGIRequest) -> HttpResponse:
+    """
+    Renders the HTML page showing user's linked accounts and give user the option to add one.
+    
+    :param request: the wsgi request object
+    :return: a rendered HTML from clouds.html
+    """
     user = request.user
     clouds = CloudInterface.objects.all()
     account_info = []
     for acc in StorageAccount.objects.filter(user=user):
-        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-        client = getattr(mod, "get_client")(acc)
-        acc.space = getattr(mod, "get_space")(client)
-        acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
-                                else 0)
-        account_info.append(acc)
+        try:
+            mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+            client = getattr(mod, "get_client")(acc)
+            acc.space = getattr(mod, "get_space")(client)
+        except Exception as e:
+            print(str(e))
+        else:
+            acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
+                                    else 0)
+            account_info.append(acc)
     return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds})
 
 
 @login_required
-def add_storage_account(request, cloud):
+def add_storage_account(request: WSGIRequest, cloud: str) -> HttpResponse:
+    """
+    Link a cloud account to the user. The OAuth flow involves multiple steps, and this view will forward the whole
+    request to the handler function in the corresponding cloud interface. For example, on the first call, there will
+    be no query parameters, so the cloud interface will know to initialize the flow. CI can set OAuth callback to this
+    view, and will get code or error etc from the query parameters.
+    
+    :param request: the wsgi request object
+    :param cloud: `name` field of the chosen CloudInterface
+    :return: whatever the cloud interface wants to return to user
+    """
     cloud = get_object_or_404(CloudInterface, name=cloud)
-    fun = getattr(importlib.import_module('bigbox.' + cloud.class_name), "add_storage_account")
-    return fun(request, reverse('clouds'), cloud)
+    try:
+        mod = importlib.import_module('bigbox.' + cloud.class_name)
+        ret = getattr(mod, "add_storage_account")(request, reverse('clouds'), cloud)
+        return ret
+    except Exception as e:
+        print(str(e))
+        messages.error(request, "Error: " + str(e))
+        return HttpResponseRedirect(reverse('clouds'))
 
 
 @transaction.atomic
 @login_required
-def rename_storage_account(request):
-    if 'pk' not in request.POST or 'value' not in request.POST:
+def rename_storage_account(request: WSGIRequest) -> JsonResponse:
+    """
+    Change the nickname of a storage account. Expects 'pk' and 'value' in request.POST.
+    
+    :param request: the wsgi request object
+    :return: a json with error or status ok to satisfy the requirements of the javascript plugin
+    """
+    if 'value' not in request.POST:
         return JsonResponse({'status': 'error', 'msg': 'missing fields'})
-    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
-    if acc.user != request.user:
-        return JsonResponse({'status': 'error', 'msg': 'not your account'})
+    acc = get_object_or_404(StorageAccount, pk=request.POST.get('pk', ''), user=request.user)
     acc.display_name = request.POST['value']
     acc.save()
     return JsonResponse({'status': 'ok'})
@@ -299,12 +328,16 @@ def rename_storage_account(request):
 
 @transaction.atomic
 @login_required
-def color_storage_account(request):
-    if 'pk' not in request.POST or 'value' not in request.POST:
+def color_storage_account(request: WSGIRequest) -> JsonResponse:
+    """
+    Change the color of a storage account. Expects 'pk' and 'value' in request.POST.
+    
+    :param request: the wsgi request object
+    :return: a json with error or status ok to satisfy the requirements of the javascript plugin
+    """
+    if 'value' not in request.POST:
         return JsonResponse({'status': 'error', 'msg': 'missing fields'})
-    acc = get_object_or_404(StorageAccount, pk=request.POST['pk'])
-    if acc.user != request.user:
-        return JsonResponse({'status': 'error', 'msg': 'not your account'})
+    acc = get_object_or_404(StorageAccount, pk=request.POST.get('pk', ''), user=request.user)
     acc.color = request.POST['value']
     acc.save()
     return JsonResponse({'status': 'ok'})
