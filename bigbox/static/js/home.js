@@ -156,7 +156,11 @@ function generateDirList(fullpath) {
 }
 
 function generateFiles(items) {
-    console.log(items)
+    items.sort(function (a, b) {
+        var ap = a.is_folder ? 'd' + a.name : 'f' + a.name;
+        var bp = b.is_folder ? 'd' + b.name : 'f' + b.name;
+        return ap.localeCompare(bp);
+    });
     $(items).each(function (i, self) {
         var htmlContent = '<tr><td class="text-xs-left" data-sort-value="';
         if (self.is_folder) {
