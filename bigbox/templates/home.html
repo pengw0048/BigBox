@@ -45,7 +45,7 @@
                     </colgroup>
                     <thead>
                     <tr>
-                        <th class="text-xs-left" data-sort="string">Name</th>
+                        <th class="text-xs-left" data-sort="string" id="th-name">Name</th>
                         <th class="text-xs-left" data-sort="int">Size</th>
                         <th class="text-xs-left" data-sort="int">Modified</th>
                     </tr>
@@ -139,6 +139,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/listr.pack.css' %}">
     <link rel="stylesheet" href="{% static 'css/jquery.fileupload.css' %}">
+    <script src="{% static 'js/listr.pack.js' %}"></script>
     <script src="{% static 'js/moment-with-locales.js' %}"></script>
     <script src="{% static 'js/common.js' %}"></script>
     <script src="{% static 'js/home.js' %}"></script>

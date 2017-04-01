@@ -45,11 +45,11 @@ window.onpopstate = function(event) {
     var url = event.state;
     $('#new-folder-dialog').data("path",url);
     loadFolder();
-}
+};
 function loadFolder() {
     var path = $('#new-folder-dialog').data("path");
     generateDirList(path);
-    $("#file_list_show").children().slice(1).remove();
+    $("#file_list_show").children().not("#file-list-loader").remove();
     $('#file-list-loader').removeClass('hidden');
     // call server for files
     $.ajax({
@@ -156,11 +156,6 @@ function generateDirList(fullpath) {
 }
 
 function generateFiles(items) {
-    items.sort(function (a, b) {
-        var ap = a.is_folder ? 'd' + a.name : 'f' + a.name;
-        var bp = b.is_folder ? 'd' + b.name : 'f' + b.name;
-        return ap.localeCompare(bp);
-    });
     $(items).each(function (i, self) {
         var htmlContent = '<tr><td class="text-xs-left" data-sort-value="';
         if (self.is_folder) {
@@ -197,6 +192,7 @@ function generateFiles(items) {
 
         $("#file_list_show").append(htmlContent);
     });
+    $("#th-name").stupidsort('asc');
 }
 
 function updateProgressBar(obj, completed, total, disp) {
