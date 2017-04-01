@@ -198,8 +198,7 @@ def get_files(request: WSGIRequest, path: str) -> JsonResponse:
         return JsonResponse({'error': str(e)})
     else:
         files.extend(list(folders.values()))
-        fl = sorted(files, key=lambda file: ('d' if file['is_folder'] else 'f') + file['name'].lower())
-        return JsonResponse(fl, safe=False)
+        return JsonResponse(files, safe=False)
 
 
 @login_required
