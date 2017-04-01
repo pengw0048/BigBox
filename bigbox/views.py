@@ -1,19 +1,19 @@
 import importlib
 from concurrent.futures.thread import ThreadPoolExecutor
-from concurrent.futures import as_completed
-from typing import *
 
+from concurrent.futures import as_completed
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
+from django.core.handlers.wsgi import WSGIRequest
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http import *
-from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render, get_object_or_404
+from typing import *
 
 from .forms import *
 from .models import *
@@ -21,7 +21,13 @@ from .models import *
 
 # user account related operations
 
-def login(request):
+def login(request: WSGIRequest) -> HttpResponse:
+    """
+    Renders the login view or log the user in
+    
+    :param request: the wsgi request object
+    :return: rendered page from login.html, or redirection to root view if validated
+    """
     if request.user.is_authenticated:
         return HttpResponseRedirect(reverse('list', args=['/']))
     elif request.method == 'POST':
@@ -42,7 +48,14 @@ def login(request):
     return render(request, 'login.html', {'form': form})
 
 
-def register(request):
+@transaction.atomic
+def register(request: WSGIRequest) -> HttpResponse:
+    """
+    Renders the registration view, or validate input and send confirmation email on form submit
+    
+    :param request: the wsgi request object
+    :return: rendered page from register.html, or redirection to login when email is sent
+    """
     if request.user.is_authenticated:
         return HttpResponseRedirect(reverse('list', args=['/']))
     elif request.method == 'POST':
@@ -51,14 +64,11 @@ def register(request):
             if User.objects.filter(username=form.cleaned_data['username']).exists():
                 messages.error(request, "There's already a user with this username. Try another one?")
             else:
-                with transaction.atomic():
-                    user = User.objects.create_user(form.cleaned_data['username'],
-                                                    password=form.cleaned_data['password'])
-                    user.first_name = form.cleaned_data['first_name']
-                    user.last_name = form.cleaned_data['last_name']
-                    user.email = form.cleaned_data['email']
-                    user.is_active = False
-                    user.save()
+                user = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'],
+                                                form.cleaned_data['password'],
+                                                first_name=form.cleaned_data['first_name'],
+                                                last_name=form.cleaned_data['last_name'], is_active=False)
+                user.save()
                 token = default_token_generator.make_token(user)
                 email_body = """
 Welcome to Big Box. Please click the link below to verify
@@ -75,7 +85,15 @@ your email address and complete the registration of your account:
 
 
 @transaction.atomic
-def confirm(request, username, token):
+def confirm(request: WSGIRequest, username: str, token: str) -> HttpResponse:
+    """
+    The view which user visits when receiving the link in the confirmation email.
+    
+    :param request: the wsgi request object
+    :param username: the username to confirm
+    :param token: the confirmation token
+    :return: if valid, redirection to home view
+    """
     user = get_object_or_404(User, username=username)
     if not default_token_generator.check_token(user, token):
         return HttpResponseNotFound('Link is invalid')
@@ -98,6 +116,8 @@ def normalize_path(path: str) -> str:
     :param path: the path to be transformed
     :return: a normalized path
     """
+    if not path:
+        return '/'
     if not path.startswith('/'):
         path = '/' + path
     if not path.endswith('/'):
@@ -118,8 +138,7 @@ def file_list_view(request: WSGIRequest, path: str) -> HttpResponse:
     path = normalize_path(path)
     user = request.user
     acc = StorageAccount.objects.filter(user=user)
-    return render(request, 'home.html', {'user': user, 'acc': acc,
-                                         'path': path if path[-1] == '/' else path + '/'})
+    return render(request, 'home.html', {'user': user, 'acc': acc, 'path': path})
 
 
 def get_file_list(c: StorageAccount, path: str) -> List[dict]:
