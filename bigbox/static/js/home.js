@@ -2,14 +2,13 @@ var uploaders = [];
 var MAX_UP_THREADS = 3;
 var locale = window.navigator.userLanguage || window.navigator.language;
 if (locale) moment.locale(locale);
-$(document).on("click", ".upload-to-cloud", function () {
+$(document).on("click", ".upload-to-cloud", function (e) {
+    e.preventDefault();
     var self = $(this);
     var pk = self.data("pk");
     var dname = self.text();
     var classname = self.data("classname");
-    var path = $('#new-folder-dialog').data("path");
-    if (!path.endsWith('/')) path += '/';
-    $("#upload-form").hide().data("path", path);
+    $("#upload-form").hide();
     $("#upload-loader").show();
     $.ajax({
         url: "/get-up-creds",
@@ -29,25 +28,21 @@ $(document).on("click", ".upload-to-cloud", function () {
     $("#upload-dialog").modal();
 }).on("click", ".folder-link", function (e) {
     e.preventDefault();
-    var path = $('#new-folder-dialog').data("path");
     var folder = $(this).text();
     window.history.pushState(path + folder + "/", null, "/home" + path + folder + "/");
-    $('#new-folder-dialog').data("path", path + folder + "/");
+    path += folder + "/";
     loadFolder();
 }).on("click", ".folder-link-full", function (e) {
     e.preventDefault();
-    $('#new-folder-dialog').data("path", $(this).data('path'));
-    var path = $('#new-folder-dialog').data("path");
+    path = $(this).data('path');
     window.history.pushState(path, null, "/home" + path);
     loadFolder();
 });
 window.onpopstate = function(event) {
-    var url = event.state;
-    $('#new-folder-dialog').data("path",url);
+    path = event.state;
     loadFolder();
 };
 function loadFolder() {
-    var path = $('#new-folder-dialog').data("path");
     generateDirList(path);
     $("#file_list_show").children().not("#file-list-loader").remove();
     $('#file-list-loader').removeClass('hidden');
@@ -57,11 +52,6 @@ function loadFolder() {
         method: "GET",
         dataType: "json",
         success: generateFiles,
-        //function(data) {
-         //   console.log(data)
-           // generateFiles(data);
-         //   changeAddr(path);
-        //}
         complete: function () {
             $('#file-list-loader').addClass('hidden');
         }
@@ -70,7 +60,6 @@ function loadFolder() {
 
 // transmit values of files and dir_list to front end
 $(document).ready(function () {
-    var path = $('#new-folder-dialog').data('path');
     history.replaceState(path, null, "/home"+path);
     $('#master-progress-container').hide();
     // call server for dir_list
@@ -126,7 +115,7 @@ $(document).ready(function () {
             url: "/create-folder",
             method: "POST",
             dataType: "json",
-            data: {'pk': pks, 'path': $('#new-folder-dialog').data('path'), 'name': $('#folder-name-input').val()},
+            data: {'pk': pks, 'path': path, 'name': $('#folder-name-input').val()},
             traditional: true,
             complete: function () {
                 $('#new-folder-dialog').modal('hide');
@@ -145,12 +134,12 @@ $(document).ready(function () {
 function generateDirList(fullpath) {
     var items = fullpath.split("/");
     $("#dir_list_show").children().slice(1).remove();
-    var path = '/';
+    var apath = '/';
     $(items).each(function (i, item) {
         if (item === '') return;
-        path += item + '/';
+        apath += item + '/';
         $("#dir_list_show").append(
-            '<li class="breadcrumb-item">' + '<a href="#" class="folder-link-full" data-path="' + path + '">' + item + "</a></li>"
+            '<li class="breadcrumb-item">' + '<a href="#" class="folder-link-full" data-path="' + apath + '">' + item + "</a></li>"
         );
     });
 }
@@ -232,7 +221,7 @@ function ChunkedUploader(file, progress_bar) {
     this.file_size = this.file.size;
     this.file_name = this.file.name;
     this.state = 0;
-    this.path = $("#upload-form").data("path");
+    this.path = path;
     this.chunk_size = ci_chunk_size(this.file_size);
     this.range_start = 0;
     this.range_end = this.chunk_size;
