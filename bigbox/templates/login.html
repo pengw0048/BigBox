@@ -16,6 +16,7 @@
                         </div>
                     {% endfor %}
                     {% include 'popupmsg.html' with formerr=form.non_field_errors %}
+                    <div class="g-recaptcha" data-sitekey="6LenRxsUAAAAAKRGENaYiR021yW5-IzETUUJtZbF"></div>
                     <button type="submit" class="btn btn-primary btn-lg">Sign me in!</button>
                     <a class="btn btn-default btn-lg" href="{% url 'register' %}">Get an account</a>
                 </form>
