@@ -1,8 +1,7 @@
 import importlib
-import urllib
 import json
+import urllib
 import urllib.request
-
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from concurrent.futures import as_completed
@@ -39,6 +38,8 @@ def login(request: WSGIRequest) -> HttpResponse:
         if form.is_valid():
 
             ''' Begin reCAPTCHA validation '''
+            if 'g-recaptcha-response' not in request.POST:
+                return HttpResponseBadRequest()
             recaptcha_response = request.POST.get('g-recaptcha-response')
             url = 'https://www.google.com/recaptcha/api/siteverify'
             values = {
@@ -85,21 +86,40 @@ def register(request: WSGIRequest) -> HttpResponse:
             if User.objects.filter(username=form.cleaned_data['username']).exists():
                 messages.error(request, "There's already a user with this username. Try another one?")
             else:
-                user = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'],
-                                                form.cleaned_data['password'],
-                                                first_name=form.cleaned_data['first_name'],
-                                                last_name=form.cleaned_data['last_name'], is_active=False)
-                user.save()
-                token = default_token_generator.make_token(user)
-                email_body = """
-Welcome to Big Box. Please click the link below to verify
-your email address and complete the registration of your account:
-  http://%s%s
-""" % (request.get_host(), reverse('confirm', args=[user.username, token]))
-                send_mail(subject="Verify your email address", message=email_body,
-                          from_email=settings.EMAIL_ADDRESS, recipient_list=[user.email])
-                messages.info(request, 'Please check your inbox and activate your account')
-                return HttpResponseRedirect(reverse('login'))
+
+                ''' Begin reCAPTCHA validation '''
+                if 'g-recaptcha-response' not in request.POST:
+                    return HttpResponseBadRequest()
+                recaptcha_response = request.POST.get('g-recaptcha-response')
+                url = 'https://www.google.com/recaptcha/api/siteverify'
+                values = {
+                    'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+                    'response': recaptcha_response
+                }
+                data = urllib.parse.urlencode(values).encode("utf-8")
+                req = urllib.request.Request(url, data)
+                response = urllib.request.urlopen(req)
+                result = json.load(response)
+                ''' End reCAPTCHA validation '''
+
+                if result['success']:
+                    user = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'],
+                                                    form.cleaned_data['password'],
+                                                    first_name=form.cleaned_data['first_name'],
+                                                    last_name=form.cleaned_data['last_name'], is_active=False)
+                    user.save()
+                    token = default_token_generator.make_token(user)
+                    email_body = """
+    Welcome to Big Box. Please click the link below to verify
+    your email address and complete the registration of your account:
+      http://%s%s
+    """ % (request.get_host(), reverse('confirm', args=[user.username, token]))
+                    send_mail(subject="Verify your email address", message=email_body,
+                              from_email=settings.EMAIL_ADDRESS, recipient_list=[user.email])
+                    messages.info(request, 'Please check your inbox and activate your account')
+                    return HttpResponseRedirect(reverse('login'))
+                else:
+                    messages.error(request, 'Invalid reCAPTCHA. Please try again.')
     else:
         form = RegisterForm()
     return render(request, 'register.html', {'form': form})
