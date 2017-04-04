@@ -8,8 +8,8 @@ $(document).on("click", ".upload-to-cloud", function (e) {
     var pk = self.data("pk");
     var dname = self.text();
     var classname = self.data("classname");
-    $("#upload-form").hide();
     $("#upload-loader").show();
+    $("#upload-to").text(dname);
     $.ajax({
         url: "/get-up-creds",
         data: {"pk": pk},
@@ -24,13 +24,12 @@ $(document).on("click", ".upload-to-cloud", function (e) {
             });
         }
     });
-    $("#upload-to").text(dname);
     $("#upload-dialog").modal();
 }).on("click", ".folder-link", function (e) {
     e.preventDefault();
     var folder = $(this).text();
-    window.history.pushState(path + folder + "/", null, "/home" + path + folder + "/");
     path += folder + "/";
+    window.history.pushState(path, null, "/home" + path);
     loadFolder();
 }).on("click", ".folder-link-full", function (e) {
     e.preventDefault();
@@ -45,24 +44,20 @@ window.onpopstate = function(event) {
 function loadFolder() {
     generateDirList(path);
     $("#file_list_show").children().not("#file-list-loader").remove();
-    $('#file-list-loader').removeClass('hidden');
-    // call server for files
+    $('#file-list-loader').show();
     $.ajax({
         url: "/get-files" + path,
         method: "GET",
         dataType: "json",
         success: generateFiles,
         complete: function () {
-            $('#file-list-loader').addClass('hidden');
+            $('#file-list-loader').hide();
         }
     });
 }
-
-// transmit values of files and dir_list to front end
 $(document).ready(function () {
     history.replaceState(path, null, "/home"+path);
     $('#master-progress-container').hide();
-    // call server for dir_list
     loadFolder();
     $('#new-folder-dialog').on('hide.bs.modal', function () {
         $('#folder-name-input').val('');
@@ -76,6 +71,7 @@ $(document).ready(function () {
         $('#upload-clear').prop('disabled', true);
         $('#file-list').empty();
     }).on('hidden.bs.modal', function () {
+        $('#master-progress-container').hide();
         loadFolder();
     });
     $('#file-input').on('change', function (e) {
