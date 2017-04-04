@@ -1,4 +1,8 @@
 import importlib
+import urllib
+import json
+import urllib.request
+
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from concurrent.futures import as_completed
@@ -33,16 +37,33 @@ def login(request: WSGIRequest) -> HttpResponse:
     elif request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
-            user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
-            if user is None:
-                messages.error(request, 'Please check your username and password.')
-            else:
-                auth_login(request, user)
-                if request.GET.get('next', None):
-                    return HttpResponseRedirect(request.GET['next'])
+
+            ''' Begin reCAPTCHA validation '''
+            recaptcha_response = request.POST.get('g-recaptcha-response')
+            url = 'https://www.google.com/recaptcha/api/siteverify'
+            values = {
+                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+                'response': recaptcha_response
+            }
+            data = urllib.parse.urlencode(values).encode("utf-8")
+            req = urllib.request.Request(url, data)
+            response = urllib.request.urlopen(req)
+            result = json.load(response)
+            ''' End reCAPTCHA validation '''
+
+            if result['success']:
+                user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
+                if user is None:
+                    messages.error(request, 'Please check your username and password.')
                 else:
-                    messages.success(request, 'Successfully logged in. Welcome to Big Box!')
-                    return HttpResponseRedirect(reverse('list', args=['/']))
+                    auth_login(request, user)
+                    if request.GET.get('next', None):
+                        return HttpResponseRedirect(request.GET['next'])
+                    else:
+                        messages.success(request, 'Successfully logged in. Welcome to Big Box!')
+                        return HttpResponseRedirect(reverse('list', args=['/']))
+            else:
+                messages.error(request, 'Invalid reCAPTCHA. Please try again.')
     else:
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
