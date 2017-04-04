@@ -145,4 +145,4 @@ ONEDRIVE_REDIRECT_URL = config.get('Onedrive', 'Redirect')
 ONEDRIVE_BASE_URL = config.get('Onedrive', 'Base')
 ONEDRIVE_SCOPE = config.get('Onedrive', 'Scope')
 
-GOOGLE_RECAPTCHA_SECRET_KEY = '6LenRxsUAAAAAPrnhyc2j_Rdj53X6YnbfiH9Ae5u'
+GOOGLE_RECAPTCHA_SECRET_KEY = config.get('Recaptcha', 'Secret')
