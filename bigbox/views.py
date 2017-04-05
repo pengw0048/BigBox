@@ -1,9 +1,7 @@
 import importlib
-import json
-import urllib
-import urllib.request
 from concurrent.futures.thread import ThreadPoolExecutor
 
+import requests
 from concurrent.futures import as_completed
 from django.conf import settings
 from django.contrib import messages
@@ -24,9 +22,33 @@ from .models import *
 
 # user account related operations
 
+def validate_captcha(request: WSGIRequest) -> bool:
+    """
+    A helper function that validates if the given request passes recaptcha validation.
+    
+    :param request: the wsgi request object
+    :return: whether valid or not
+    """
+    if 'g-recaptcha-response' not in request.POST:
+        return False
+    recaptcha_response = request.POST.get('g-recaptcha-response')
+    url = 'https://www.google.com/recaptcha/api/siteverify'
+    values = {
+        'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+        'response': recaptcha_response
+    }
+    try:
+        result = requests.post(url, data=values).json()
+        if not result['success']:
+            raise Exception()
+        return True
+    except:
+        return False
+
+
 def login(request: WSGIRequest) -> HttpResponse:
     """
-    Renders the login view or log the user in
+    Renders the login view or log the user in.
     
     :param request: the wsgi request object
     :return: rendered page from login.html, or redirection to root view if validated
@@ -36,23 +58,7 @@ def login(request: WSGIRequest) -> HttpResponse:
     elif request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
-
-            ''' Begin reCAPTCHA validation '''
-            if 'g-recaptcha-response' not in request.POST:
-                return HttpResponseBadRequest()
-            recaptcha_response = request.POST.get('g-recaptcha-response')
-            url = 'https://www.google.com/recaptcha/api/siteverify'
-            values = {
-                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-                'response': recaptcha_response
-            }
-            data = urllib.parse.urlencode(values).encode("utf-8")
-            req = urllib.request.Request(url, data)
-            response = urllib.request.urlopen(req)
-            result = json.load(response)
-            ''' End reCAPTCHA validation '''
-
-            if result['success']:
+            if validate_captcha(request):
                 user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
                 if user is None:
                     messages.error(request, 'Please check your username and password.')
@@ -73,7 +79,7 @@ def login(request: WSGIRequest) -> HttpResponse:
 @transaction.atomic
 def register(request: WSGIRequest) -> HttpResponse:
     """
-    Renders the registration view, or validate input and send confirmation email on form submit
+    Renders the registration view, or validate input and send confirmation email on form submit.
     
     :param request: the wsgi request object
     :return: rendered page from register.html, or redirection to login when email is sent
@@ -86,23 +92,7 @@ def register(request: WSGIRequest) -> HttpResponse:
             if User.objects.filter(username=form.cleaned_data['username']).exists():
                 messages.error(request, "There's already a user with this username. Try another one?")
             else:
-
-                ''' Begin reCAPTCHA validation '''
-                if 'g-recaptcha-response' not in request.POST:
-                    return HttpResponseBadRequest()
-                recaptcha_response = request.POST.get('g-recaptcha-response')
-                url = 'https://www.google.com/recaptcha/api/siteverify'
-                values = {
-                    'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-                    'response': recaptcha_response
-                }
-                data = urllib.parse.urlencode(values).encode("utf-8")
-                req = urllib.request.Request(url, data)
-                response = urllib.request.urlopen(req)
-                result = json.load(response)
-                ''' End reCAPTCHA validation '''
-
-                if result['success']:
+                if validate_captcha(request):
                     user = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'],
                                                     form.cleaned_data['password'],
                                                     first_name=form.cleaned_data['first_name'],
