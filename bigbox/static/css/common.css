@@ -118,3 +118,7 @@ h1 {
 .spinning {
     animation: spin 1s infinite linear;
 }
+
+.g-recaptcha {
+    margin-bottom: 15px;
+}
