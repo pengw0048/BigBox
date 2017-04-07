@@ -65,18 +65,15 @@ def get_file_list(db: str, path: str) -> list:
                       json={'path': path},
                       headers={'Authorization': 'Bearer ' + db})
     j = r.json()
-    try:
-        for f in j['entries']:
-            try:
-                if f['.tag'] == 'file':
-                    ret.append({'name': f['name'], 'id': f['path_lower'], 'size': f['size'],
-                                'time': f['client_modified'], 'is_folder': False})
-                elif f['.tag'] == 'folder':
-                    ret.append({'name': f['name'], 'id': f['path_lower'], 'is_folder': True})
-            except:
-                pass
-    except:
-        pass
+    for f in j['entries']:
+        try:
+            if f['.tag'] == 'file':
+                ret.append({'name': f['name'], 'id': f['path_lower'], 'size': f['size'],
+                            'time': f['client_modified'], 'is_folder': False})
+            elif f['.tag'] == 'folder':
+                ret.append({'name': f['name'], 'id': f['path_lower'], 'is_folder': True})
+        except:
+            pass
     return ret
 
 
