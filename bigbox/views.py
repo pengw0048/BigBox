@@ -218,8 +218,10 @@ def get_files(request: WSGIRequest, path: str) -> JsonResponse:
                     f['colors'] = [c.color]
                     if f['is_folder']:
                         if f['name'] in folders:
+                            folders[f['name']]['id'].append({c.pk: f['id']})
                             folders[f['name']]['colors'].append(c.color)
                         else:
+                            f['id'] = [{c.pk: f['id']}]
                             folders[f['name']] = f
                     else:
                         f['acc'] = c.pk
@@ -307,6 +309,10 @@ def create_folder(request: WSGIRequest) -> JsonResponse:
             rets[acc.pk] = ret
     return JsonResponse(rets)
 
+
+@login_required
+def delete(request: WSGIRequest) -> JsonResponse:
+    return JsonResponse({})
 
 # storage account related operations
 

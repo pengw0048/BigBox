@@ -56,6 +56,7 @@ function loadFolder() {
         success: generateFiles,
         complete: function () {
             $('#file-list-loader').hide();
+            updateLeftPanel();
         }
     });
 }
@@ -126,7 +127,7 @@ $(document).ready(function () {
                 $('#new-folder-dialog').modal('hide');
                 $('#create-folder-button').prop('disabled', false).children('span').addClass('hidden');
             }
-        })
+        });
     });
     $('#upload-clear').on('click', function () {
         $('#upload-start').prop('disabled', true);
@@ -134,6 +135,26 @@ $(document).ready(function () {
         $('#file-list').empty();
         uploaders = [];
     });
+    $('#delete-button').on('click', function (e) {
+        $('#delete-button').prop('disabled', true).children('span').removeClass('hidden');
+        e.preventDefault();
+        var arr = [];
+        $("[name='select-file']:checked").each(function (i, self) {
+            $($(self).data('id')).each(function (j, me) {
+                arr.push(me);
+            })
+        });
+        $.ajax({
+            url: "/delete",
+            method: "POST",
+            dataType: "json",
+            data: {"data": JSON.stringify(arr)},
+            complete: function () {
+                $('#delete-button').prop('disabled', false).children('span').addClass('hidden');
+                loadFolder();
+            }
+        });
+    })
 });
 
 function generateDirList(fullpath) {
@@ -183,8 +204,14 @@ function generateFiles(items) {
             + new Date(self.time).getTime() + '">' + moment(self.time).format('lll') + "</td>");
         }
         htmlContent += ("</tr>");
-
-        $("#file_list_show").append(htmlContent);
+        var tr = $(htmlContent);
+        if (self.is_folder) tr.find('input').data('id', self.id);
+        else {
+            var o = {};
+            o[self.acc] = self.id;
+            tr.find('input').data('id', [o]);
+        }
+        $("#file_list_show").append(tr);
     });
     $("#th-name").stupidsort('asc');
     $("[name='select-file']").change(updateLeftPanel);
