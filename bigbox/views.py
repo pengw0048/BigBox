@@ -1,4 +1,5 @@
 import importlib
+import json
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import requests
@@ -312,7 +313,28 @@ def create_folder(request: WSGIRequest) -> JsonResponse:
 
 @login_required
 def delete(request: WSGIRequest) -> JsonResponse:
-    return JsonResponse({})
+    if 'data' not in request.POST:
+        return JsonResponse({'error': 'missing fields'})
+    try:
+        j = json.loads(request.POST['data'])
+        ids = {}
+        for item in j:
+            for key, value in item.items():
+                if key in ids:
+                    ids[key].append(value)
+                else:
+                    ids[key] = [value]
+        rets = {}
+        for key, value in ids.items():
+            acc = get_object_or_404(StorageAccount, pk=key, user=request.user)
+            mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+            client = getattr(mod, "get_client")(acc)
+            ret = getattr(mod, "delete")(client, value)
+            rets[key] = ret
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({'error': str(e)})
+    return JsonResponse(rets)
 
 # storage account related operations
 
