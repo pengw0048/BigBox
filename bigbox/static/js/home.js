@@ -36,6 +36,10 @@ $(document).on("click", ".upload-to-cloud", function (e) {
     path = $(this).data('path');
     window.history.pushState(path, null, "/home" + path);
     loadFolder();
+}).on("click", "tr", function (e) {
+    var clicked = e.target.nodeName.toLowerCase();
+    if (clicked !== "td") return;
+    $(this).find("input").click();
 });
 window.onpopstate = function(event) {
     path = event.state;
@@ -57,6 +61,11 @@ function loadFolder() {
 }
 $(document).ready(function () {
     history.replaceState(path, null, "/home"+path);
+    $('#select-all').change(function () {
+        var checked = $(this).prop("checked");
+        $("[name='select-file']").prop("checked", checked);
+        updateLeftPanel();
+    });
     $('#master-progress-container').hide();
     loadFolder();
     $('#new-folder-dialog').on('hide.bs.modal', function () {
@@ -142,7 +151,7 @@ function generateDirList(fullpath) {
 
 function generateFiles(items) {
     $(items).each(function (i, self) {
-        var htmlContent = '<tr><td class="text-xs-left" data-sort-value="';
+        var htmlContent = '<tr><td class="checkbox-col"><div class="checkbox checkbox-default"><input type="checkbox" name="select-file"><label></label></div></td><td class="text-xs-left" data-sort-value="';
         if (self.is_folder) {
             htmlContent += ("d");
         } else {
@@ -178,6 +187,23 @@ function generateFiles(items) {
         $("#file_list_show").append(htmlContent);
     });
     $("#th-name").stupidsort('asc');
+    $("[name='select-file']").change(updateLeftPanel);
+}
+
+function updateLeftPanel () {
+    var numsel = $("[name='select-file']:checked").length;
+    $('#select-all').prop("checked", (numsel === $("[name='select-file']").length));
+    if (numsel === 0) {
+        $('#files-op-panel').hide();
+    } else {
+        $('#num-selecting-files').text(numsel);
+        if (numsel === 1) {
+            $('#rename-button').show();
+        } else {
+            $('#rename-button').hide();
+        }
+        $('#files-op-panel').show();
+    }
 }
 
 function updateProgressBar(obj, completed, total, disp) {

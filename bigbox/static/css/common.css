@@ -15,9 +15,7 @@ body {
     margin: 20px auto;
     padding: 20px;
     max-width: 500px;
-    border-width: 1px;
-    border-style: solid;
-    border-color: #ddd;
+    border: 1px solid #ddd;
     border-radius: 5px;
 }
 .alert {
@@ -29,13 +27,9 @@ h1 {
 }
 .acloud {
     margin: 20px auto;
-    padding: 20px;
-    padding-bottom: 15px;
-    border-width: 1px;
+    padding: 20px 20px 15px;
+    border: 1px solid #ddd;
     border-left-width: 5px;
-    border-left-color: gray;
-    border-style: solid;
-    border-color: #ddd;
     border-radius: 3px;
 }
 .cloudcard-logo {
@@ -118,7 +112,31 @@ h1 {
 .spinning {
     animation: spin 1s infinite linear;
 }
-
 .g-recaptcha {
     margin-bottom: 15px;
+}
+.checkbox {
+    margin: 0 !important;
+}
+.checkbox label {
+    padding: 0 !important;
+}
+.checkbox-col {
+    padding-right: 0 !important;
+}
+.left-panel {
+    margin-top: 15px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+.small-hr {
+    margin-top: 3px;
+    margin-bottom: 7px;
+}
+.files-left-op {
+    width: 100%;
+}
+tr:not(:first-child):hover {
+    background-color: #f8f8f8 !important;
 }

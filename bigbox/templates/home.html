@@ -34,17 +34,27 @@
                     </label>
                 {% endfor %}
             </div>
+            <div class="left-panel" id="files-op-panel" style="display: none">
+                <small>Selecting <span id="num-selecting-files">0</span> items</small>
+                <hr class="small-hr">
+                <div class="btn-group-vertical files-left-op">
+                    <button type="button" class="btn btn-danger btn-sm" id="delete-button">Delete</button>
+                    <button type="button" class="btn btn-default btn-sm" id="rename-button">Rename</button>
+                </div>
+            </div>
         </div>
         <div class="col-xs-10">
             <div class="table-responsive">
                 <table id="listr-table" class="table table-hover">
                     <colgroup>
-                        <col style="width:65%">
+                        <col style="width:25px">
+                        <col>
                         <col style="width:15%">
                         <col style="width:20%">
                     </colgroup>
                     <thead>
                     <tr>
+                        <th class="checkbox-col"><div class="checkbox checkbox-primary"><input id="select-all" type="checkbox" title=""><label></label></div></th>
                         <th class="text-xs-left" data-sort="string" id="th-name">Name</th>
                         <th class="text-xs-left" data-sort="int">Size</th>
                         <th class="text-xs-left" data-sort="int">Modified</th>
@@ -52,14 +62,14 @@
                     </thead>
                     <tfoot>
                     <tr>
-                        <td colspan="3">
+                        <td colspan="4">
 
                         </td>
                     </tr>
                     </tfoot>
                     <tbody id="file_list_show">
                     <tr id="file-list-loader">
-                        <td colspan="3">
+                        <td colspan="4">
                             <div class="loader"></div>
                         </td>
                     </tr>
@@ -144,6 +154,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/listr.pack.css' %}">
     <link rel="stylesheet" href="{% static 'css/jquery.fileupload.css' %}">
+    <link rel="stylesheet" href="{% static 'css/awesome-bootstrap-checkbox.css' %}">
     <script src="{% static 'js/listr.pack.js' %}"></script>
     <script src="{% static 'js/moment-with-locales.js' %}"></script>
     <script src="{% static 'js/common.js' %}"></script>
