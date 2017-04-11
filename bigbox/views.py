@@ -206,7 +206,12 @@ def get_files(request: WSGIRequest, path: str) -> JsonResponse:
     """
     path = normalize_path(path)
     user = request.user
-    acc = StorageAccount.objects.filter(user=user)
+    if 'pks' in request.GET:
+        acc = []
+        for pk in request.GET.getlist('pks'):
+            acc.extend(StorageAccount.objects.filter(pk=pk, user=user))
+    else:
+        acc = StorageAccount.objects.filter(user=user)
     files = []
     folders = {}
     try:

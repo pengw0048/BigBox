@@ -49,9 +49,15 @@ function loadFolder() {
     generateDirList(path);
     $("#file_list_show").children().not("#file-list-loader").remove();
     $('#file-list-loader').show();
+    var pks = [];
+    $("[name='show-in-cloud']:checked").each(function (i, self) {
+        pks.push($(self).val());
+    });
     $.ajax({
         url: "/get-files" + path,
         method: "GET",
+        data: {'pks': pks},
+        traditional: true,
         dataType: "json",
         success: generateFiles,
         complete: function () {
@@ -154,7 +160,10 @@ $(document).ready(function () {
                 loadFolder();
             }
         });
-    })
+    });
+    $("[name='show-in-cloud']").on('change', function () {
+        loadFolder();
+    });
 });
 
 function generateDirList(fullpath) {

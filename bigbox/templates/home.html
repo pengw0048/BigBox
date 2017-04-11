@@ -25,12 +25,14 @@
             <div class="btn-group-vertical files-left-nav" data-toggle="buttons">
                 <label class="btn btn-sm btn-default active">
                     <i class="color-icon icon-left" style="background-color: yellow"></i>
-                    <input type="checkbox" name="cloud" value="-1" autocomplete="off" checked><small>Big files</small>
+                    <input type="checkbox" name="show-in-cloud" value="-1" autocomplete="off" checked>
+                    <small>Big files</small>
                 </label>
                 {% for c in acc %}
                     <label class="btn btn-sm btn-default active">
                         <i class="color-icon icon-left" style="background-color: {{ c.color }}"></i>
-                        <input type="checkbox" name="options" value="{{ c.pk }}" autocomplete="off" checked><small>{{ c.display_name }}</small>
+                        <input type="checkbox" name="show-in-cloud" value="{{ c.pk }}" autocomplete="off" checked>
+                        <small>{{ c.display_name }}</small>
                     </label>
                 {% endfor %}
             </div>
