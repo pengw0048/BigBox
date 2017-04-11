@@ -192,3 +192,14 @@ def delete(g: str, data: list) -> dict:
         except Exception as e:
             print(str(e))
     return {}
+
+
+def rename(g: str, data: list, to: str) -> dict:
+    for id in data:
+        try:
+            r = requests.patch('https://www.googleapis.com/drive/v3/files/' + id,
+                               json={'name': to},
+                               headers={'Authorization': 'Bearer ' + g})
+        except Exception as e:
+            print(str(e))
+    return {}

@@ -79,6 +79,13 @@ $(document).ready(function () {
         $('#folder-name-input').val('');
         loadFolder();
     });
+    $('#rename-dialog').on('show.bs.modal', function () {
+        var old_name = $("[name='select-file']:checked").first().parents('tr').find('a').text();
+        $('#rename-input').val(old_name);
+    }).on('hide.bs.modal', function () {
+        $('#rename-input').val('');
+        loadFolder();
+    });
     $('#upload-dialog').on('show.bs.modal', function () {
         uploaders = [];
         $('#file-input').prop('disabled', false).val('');
@@ -135,6 +142,26 @@ $(document).ready(function () {
             }
         });
     });
+    $('#rename-form').on('submit', function (e) {
+        $('#rename-form-button').prop('disabled', true).children('span').removeClass('hidden');
+        e.preventDefault();
+        var arr = [];
+        $("[name='select-file']:checked").each(function (i, self) {
+            $($(self).data('id')).each(function (j, me) {
+                arr.push(me);
+            })
+        });
+        $.ajax({
+            url: "/rename",
+            method: "POST",
+            dataType: "json",
+            data: {"data": JSON.stringify(arr), "to": $('#rename-input').val()},
+            complete: function () {
+                $('#rename-dialog').modal('hide');
+                $('#rename-form-button').prop('disabled', false).children('span').addClass('hidden');
+            }
+        });
+    });
     $('#upload-clear').on('click', function () {
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
@@ -143,6 +170,7 @@ $(document).ready(function () {
     });
     $('#delete-button').on('click', function (e) {
         $('#delete-button').prop('disabled', true).children('span').removeClass('hidden');
+        $('#rename-button').prop('disabled', true);
         e.preventDefault();
         var arr = [];
         $("[name='select-file']:checked").each(function (i, self) {
@@ -157,6 +185,7 @@ $(document).ready(function () {
             data: {"data": JSON.stringify(arr)},
             complete: function () {
                 $('#delete-button').prop('disabled', false).children('span').addClass('hidden');
+                $('#rename-button').prop('disabled', false);
                 loadFolder();
             }
         });

@@ -108,3 +108,15 @@ def delete(db: str, data: list) -> dict:
         except Exception as e:
             print(str(e))
     return {}
+
+
+def rename(db: str, data: list, to: str) -> dict:
+    for id in data:
+        try:
+            new_path = id[:id.rfind('/')] + '/' + to
+            r = requests.post('https://api.dropboxapi.com/2/files/move',
+                              json={'from_path': id, 'to_path': new_path, 'autorename': True},
+                              headers={'Authorization': 'Bearer ' + db})
+        except Exception as e:
+            print(str(e))
+    return {}

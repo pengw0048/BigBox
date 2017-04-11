@@ -152,3 +152,14 @@ def delete(od: str, data: list) -> dict:
         except Exception as e:
             print(str(e))
     return {}
+
+
+def rename(od: str, data: list, to: str) -> dict:
+    for id in data:
+        try:
+            r = requests.patch(settings.ONEDRIVE_BASE_URL + '/drive/items/' + id,
+                               json={'name': to},
+                               headers={'Authorization': 'Bearer ' + od})
+        except Exception as e:
+            print(str(e))
+    return {}
