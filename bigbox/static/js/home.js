@@ -111,7 +111,7 @@ $(document).ready(function () {
         e.preventDefault();
         if (is_big_file) {
             var file = e.target.files;
-            $('#file-list').append('<tr><td><div class="name">' + file.name + '</div></td><td style="width:100%">'
+            $('#file-list').append('<tr><td><div class="name">' + file[0].name + '</div></td><td style="width:100%">'
                 + '<div class="progress active"><div class="progress-bar progress-bar-info" style="width:0"><span>'
                 + formatBytes(file.size) + '</span></div></div></td>'
                 + '</tr>');
@@ -326,6 +326,14 @@ function checkUpQueue() {
     }
 }
 
+String.prototype.getBytes = function () {
+  var bytes = [];
+  for (var i = 0; i < this.length; ++i) {
+    bytes.push(this.charCodeAt(i));
+  }
+  return bytes;
+};
+
 function ChunkedUploader(file, progress_bar) {
     if (!this instanceof ChunkedUploader) {
         return new ChunkedUploader(file, options);
@@ -333,7 +341,7 @@ function ChunkedUploader(file, progress_bar) {
     this.file = file;
     this.progress_bar = progress_bar;
     this.file_size = this.file.size;
-    this.file_name = CHUNK_REMARK + this.file.name;
+    this.file_name = this.file.name;
     this.state = 0;
     this.path = path;
     this.chunk_size = ci_chunk_size(this.file_size);
@@ -363,7 +371,9 @@ ChunkedUploader.prototype = {
         this._updateProgressBar(real_total);
     },
     _updateProgressBar: function (total) {
-        updateProgressBar(this.progress_bar, total, this.file_size, formatBytes);
+        if (this.progress_bar != null) {
+            updateProgressBar(this.progress_bar, total, this.file_size, formatBytes);
+        }
     },
     _onChunkComplete: function () {
         if (this.range_end === this.file_size) {
@@ -393,18 +403,24 @@ ChunkedUploader.prototype = {
     },
     wait: function () {
         this.state = 1;
-        this.progress_bar.children('span').text('Waiting ...');
+        if (this.progress_bar != null) {
+            this.progress_bar.children('span').text('Waiting ...');
+        }
     },
     start: function () {
         this.state = 2;
-        this.progress_bar.children('span').text('Starting ...');
+        if (this.progress_bar != null) {
+            this.progress_bar.children('span').text('Starting ...');
+        }
         ci_start(this, this._upload.bind(this));
         this._updateProgressBar(0);
     },
     fail: function (text) {
         this.state = 4;
-        this.progress_bar.css('width', '0');
-        this.progress_bar.children('span').text(text).css('color', 'red').css('text-shadow', '1px 1px white');
+        if (this.progress_bar != null) {
+            this.progress_bar.css('width', '0');
+            this.progress_bar.children('span').text(text).css('color', 'red').css('text-shadow', '1px 1px white');
+        }
         checkUpQueue();
     }
 };
@@ -419,7 +435,7 @@ function BigUploader(file, progress_bar, acc, cloudclass) {
     this.progress_bar = progress_bar;
     this.file_size = 0; // represent total file size in the request to drive
     this.ori_file_size = this.file.size;
-    this.file_name = this.file.name;
+    this.file_name = CHUNK_REMARK + this.file.name;
     this.state = 0;
     this.path = path;
 
@@ -459,10 +475,6 @@ function getNextCloudCreds(pk, classname, done) {
             });
         }
     });
-}
-
-function changeUploader(uploader) {
-    uploader.chunk_size = ci_chunk_size();
 }
 
 BigUploader.prototype = {
@@ -518,8 +530,15 @@ BigUploader.prototype = {
                     }.bind(this));
                 }.bind(this));
         } else {
-        // write upload record to file
-            alert("finish!");
+            // write upload record to file
+            console.log(this.up_record);
+            var str = JSON.stringify(this.up_record);
+            console.log(str);
+            console.log(str.getBytes());
+            var meta_file = str.getBytes();
+
+            meta_uploader = new ChunkedUploader(meta_file, null);
+            meta_uploader.start();
         }
     },
     _onError: function () {
