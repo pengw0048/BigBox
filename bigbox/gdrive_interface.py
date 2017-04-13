@@ -184,3 +184,24 @@ def get_upload_creds(g: str, data: str) -> dict:
         r = requests.patch('https://www.googleapis.com/upload/drive/v3/files/%s?uploadType=resumable' % fs[0]['id'],
                            headers={'Authorization': 'Bearer ' + g})
     return {'url': r.headers['Location']}
+
+
+def delete(g: str, data: list) -> dict:
+    for id in data:
+        try:
+            r = requests.delete('https://www.googleapis.com/drive/v3/files/' + id,
+                                headers={'Authorization': 'Bearer ' + g})
+        except Exception as e:
+            print(str(e))
+    return {}
+
+
+def rename(g: str, data: list, to: str) -> dict:
+    for id in data:
+        try:
+            r = requests.patch('https://www.googleapis.com/drive/v3/files/' + id,
+                               json={'name': to},
+                               headers={'Authorization': 'Bearer ' + g})
+        except Exception as e:
+            print(str(e))
+    return {}

@@ -59,13 +59,20 @@ function loadFolder() {
     generateDirList(path);
     $("#file_list_show").children().not("#file-list-loader").remove();
     $('#file-list-loader').show();
+    var pks = [];
+    $("[name='show-in-cloud']:checked").each(function (i, self) {
+        pks.push($(self).val());
+    });
     $.ajax({
         url: "/get-files" + path,
         method: "GET",
+        data: {'pks': pks},
+        traditional: true,
         dataType: "json",
         success: generateFiles,
         complete: function () {
             $('#file-list-loader').hide();
+            updateLeftPanel();
         }
     });
 }
@@ -80,6 +87,13 @@ $(document).ready(function () {
     loadFolder();
     $('#new-folder-dialog').on('hide.bs.modal', function () {
         $('#folder-name-input').val('');
+        loadFolder();
+    });
+    $('#rename-dialog').on('show.bs.modal', function () {
+        var old_name = $("[name='select-file']:checked").first().parents('tr').find('a').text();
+        $('#rename-input').val(old_name);
+    }).on('hide.bs.modal', function () {
+        $('#rename-input').val('');
         loadFolder();
     });
     $('#upload-dialog').on('show.bs.modal', function () {
@@ -153,13 +167,58 @@ $(document).ready(function () {
                 $('#new-folder-dialog').modal('hide');
                 $('#create-folder-button').prop('disabled', false).children('span').addClass('hidden');
             }
-        })
+        });
+    });
+    $('#rename-form').on('submit', function (e) {
+        $('#rename-form-button').prop('disabled', true).children('span').removeClass('hidden');
+        e.preventDefault();
+        var arr = [];
+        $("[name='select-file']:checked").each(function (i, self) {
+            $($(self).data('id')).each(function (j, me) {
+                arr.push(me);
+            })
+        });
+        $.ajax({
+            url: "/rename",
+            method: "POST",
+            dataType: "json",
+            data: {"data": JSON.stringify(arr), "to": $('#rename-input').val()},
+            complete: function () {
+                $('#rename-dialog').modal('hide');
+                $('#rename-form-button').prop('disabled', false).children('span').addClass('hidden');
+            }
+        });
     });
     $('#upload-clear').on('click', function () {
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
         $('#file-list').empty();
         uploaders = [];
+    });
+    $('#delete-button').on('click', function (e) {
+        $('#delete-button').prop('disabled', true).children('span').removeClass('hidden');
+        $('#rename-button').prop('disabled', true);
+        e.preventDefault();
+        var arr = [];
+        $("[name='select-file']:checked").each(function (i, self) {
+            $($(self).data('id')).each(function (j, me) {
+                arr.push(me);
+            })
+        });
+        $.ajax({
+            url: "/delete",
+            method: "POST",
+            dataType: "json",
+            data: {"data": JSON.stringify(arr)},
+            complete: function () {
+                $('#delete-button').prop('disabled', false).children('span').addClass('hidden');
+                $('#rename-button').prop('disabled', false);
+                loadFolder();
+            }
+        });
+    });
+    $("[name='show-in-cloud']").on('change', function () {
+        loadFolder();
     });
 });
 
@@ -210,8 +269,14 @@ function generateFiles(items) {
             + new Date(self.time).getTime() + '">' + moment(self.time).format('lll') + "</td>");
         }
         htmlContent += ("</tr>");
-
-        $("#file_list_show").append(htmlContent);
+        var tr = $(htmlContent);
+        if (self.is_folder) tr.find('input').data('id', self.id);
+        else {
+            var o = {};
+            o[self.acc] = self.id;
+            tr.find('input').data('id', [o]);
+        }
+        $("#file_list_show").append(tr);
     });
     $("#th-name").stupidsort('asc');
     $("[name='select-file']").change(updateLeftPanel);

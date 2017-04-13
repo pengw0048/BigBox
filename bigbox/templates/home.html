@@ -25,12 +25,14 @@
             <div class="btn-group-vertical files-left-nav" data-toggle="buttons">
                 <label class="btn btn-sm btn-default active">
                     <i class="color-icon icon-left" style="background-color: yellow"></i>
-                    <input type="checkbox" name="cloud" value="-1" autocomplete="off" checked><small>Big files</small>
+                    <input type="checkbox" name="show-in-cloud" value="-1" autocomplete="off" checked>
+                    <small>Big files</small>
                 </label>
                 {% for c in acc %}
                     <label class="btn btn-sm btn-default active">
                         <i class="color-icon icon-left" style="background-color: {{ c.color }}"></i>
-                        <input type="checkbox" name="options" value="{{ c.pk }}" autocomplete="off" checked><small>{{ c.display_name }}</small>
+                        <input type="checkbox" name="show-in-cloud" value="{{ c.pk }}" autocomplete="off" checked>
+                        <small>{{ c.display_name }}</small>
                     </label>
                 {% endfor %}
             </div>
@@ -38,8 +40,12 @@
                 <small>Selecting <span id="num-selecting-files">0</span> items</small>
                 <hr class="small-hr">
                 <div class="btn-group-vertical files-left-op">
-                    <button type="button" class="btn btn-danger btn-sm" id="delete-button">Delete</button>
-                    <button type="button" class="btn btn-default btn-sm" id="rename-button">Rename</button>
+                    <button type="button" class="btn btn-danger btn-sm" id="delete-button"><span
+                            class="glyphicon glyphicon-refresh spinning hidden"></span> Delete
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" id="rename-button" data-toggle="modal"
+                            data-target="#rename-dialog">Rename
+                    </button>
                 </div>
             </div>
         </div>
@@ -144,6 +150,32 @@
                     <button type="submit" class="btn btn-primary" id="create-folder-button"><span class="glyphicon glyphicon-refresh spinning hidden"></span> Create</button>
                     <a class="btn btn-default" data-dismiss="modal">Close</a>
                 </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="rename-dialog" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title">Rename <span id="rename-from"></span></h4>
+                </div>
+                <form id="rename-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="control-label" for="rename-input">New name</label>
+                            <input type="text" class="form-control name-input" id="rename-input" minlength="1"
+                                   maxlength="100" placeholder="" pattern='^[^\\\/?%*:|"<>]{1,100}$'>
+                            <div class="hidden errmsg help-block">The name should not contain: \/?%*:|"<>.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" id="rename-form-button"><span
+                                class="glyphicon glyphicon-refresh spinning hidden"></span> Rename
+                        </button>
+                        <a class="btn btn-default" data-dismiss="modal">Close</a>
+                    </div>
                 </form>
             </div>
         </div>

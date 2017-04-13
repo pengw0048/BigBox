@@ -1,4 +1,5 @@
 import importlib
+import json
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import requests
@@ -213,7 +214,12 @@ def get_files(request: WSGIRequest, path: str) -> JsonResponse:
     """
     path = normalize_path(path)
     user = request.user
-    acc = StorageAccount.objects.filter(user=user)
+    if 'pks' in request.GET:
+        acc = []
+        for pk in request.GET.getlist('pks'):
+            acc.extend(StorageAccount.objects.filter(pk=pk, user=user))
+    else:
+        acc = StorageAccount.objects.filter(user=user)
     files = []
     folders = {}
     try:
@@ -226,8 +232,10 @@ def get_files(request: WSGIRequest, path: str) -> JsonResponse:
                     f['colors'] = [c.color]
                     if f['is_folder']:
                         if f['name'] in folders:
+                            folders[f['name']]['id'].append({c.pk: f['id']})
                             folders[f['name']]['colors'].append(c.color)
                         else:
+                            f['id'] = [{c.pk: f['id']}]
                             folders[f['name']] = f
                     else:
                         f['acc'] = c.pk
@@ -337,6 +345,58 @@ def create_folder(request: WSGIRequest) -> JsonResponse:
             rets[acc.pk] = ret
     return JsonResponse(rets)
 
+
+@login_required
+def delete(request: WSGIRequest) -> JsonResponse:
+    if 'data' not in request.POST:
+        return JsonResponse({'error': 'missing fields'})
+    try:
+        j = json.loads(request.POST['data'])
+        ids = {}
+        for item in j:
+            for key, value in item.items():
+                if key in ids:
+                    ids[key].append(value)
+                else:
+                    ids[key] = [value]
+        rets = {}
+        for key, value in ids.items():
+            acc = get_object_or_404(StorageAccount, pk=key, user=request.user)
+            mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+            client = getattr(mod, "get_client")(acc)
+            ret = getattr(mod, "delete")(client, value)
+            rets[key] = ret
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({'error': str(e)})
+    return JsonResponse(rets)
+
+
+@login_required
+def rename(request: WSGIRequest) -> JsonResponse:
+    if 'data' not in request.POST or 'to' not in request.POST:
+        return JsonResponse({'error': 'missing fields'})
+    try:
+        to = request.POST['to']
+        j = json.loads(request.POST['data'])
+        ids = {}
+        for item in j:
+            for key, value in item.items():
+                if key in ids:
+                    ids[key].append(value)
+                else:
+                    ids[key] = [value]
+        rets = {}
+        for key, value in ids.items():
+            acc = get_object_or_404(StorageAccount, pk=key, user=request.user)
+            mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+            client = getattr(mod, "get_client")(acc)
+            ret = getattr(mod, "rename")(client, value, to)
+            rets[key] = ret
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({'error': str(e)})
+    return JsonResponse(rets)
 
 # storage account related operations
 

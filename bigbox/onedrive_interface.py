@@ -142,3 +142,24 @@ def create_folder(od: str, path: str, name: str) -> dict:
                       json={'name': name, 'folder': {}},
                       headers={'Authorization': 'bearer ' + od})
     return {'id': r.json()['id']}
+
+
+def delete(od: str, data: list) -> dict:
+    for id in data:
+        try:
+            r = requests.delete(settings.ONEDRIVE_BASE_URL + '/drive/items/' + id,
+                                headers={'Authorization': 'Bearer ' + od})
+        except Exception as e:
+            print(str(e))
+    return {}
+
+
+def rename(od: str, data: list, to: str) -> dict:
+    for id in data:
+        try:
+            r = requests.patch(settings.ONEDRIVE_BASE_URL + '/drive/items/' + id,
+                               json={'name': to},
+                               headers={'Authorization': 'Bearer ' + od})
+        except Exception as e:
+            print(str(e))
+    return {}

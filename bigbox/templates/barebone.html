@@ -8,6 +8,12 @@
     <title>{% block title %}This is where the title goes{% endblock %}</title>
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/common.css' %}" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'favicon-32x32.png' %}{{ STATIC_URL }}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{% static 'favicon-16x16.png' %}{{ STATIC_URL }}" sizes="16x16">
+    <link rel="manifest" href="{% static 'manifest.json' %}{{ STATIC_URL }}">
+    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}{{ STATIC_URL }}" color="#5bbad5">
+    <meta name="theme-color" content="#ffffff">
 </head>
 <body>
     {% block body %}
