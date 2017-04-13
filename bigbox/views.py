@@ -13,8 +13,9 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http import *
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, get_list_or_404
 from typing import *
+import json
 
 from .forms import *
 from .models import *
@@ -169,7 +170,14 @@ def file_list_view(request: WSGIRequest, path: str) -> HttpResponse:
     path = normalize_path(path)
     user = request.user
     acc = StorageAccount.objects.filter(user=user)
-    return render(request, 'home.html', {'user': user, 'acc': acc, 'path': path})
+    num = '['
+    cloudclass = '['
+    for sub_acc in acc:
+        num = num + str(sub_acc.pk) + ','
+        cloudclass = cloudclass + '"' + str(sub_acc.cloud.class_name)  + '"' + ','
+    num = num[:-1] + ']'
+    cloudclass = cloudclass[:-1] + ']'
+    return render(request, 'home.html', {'user': user, 'acc': acc, 'path': path, 'num': num, 'cloudclass': cloudclass})
 
 
 def get_file_list(c: StorageAccount, path: str) -> List[dict]:
@@ -275,7 +283,27 @@ def get_upload_creds(request: WSGIRequest) -> JsonResponse:
         print(str(e))
         return JsonResponse({'error': str(e)})
     else:
+        print(creds)
         return JsonResponse(creds)
+
+@login_required
+def get_all_creds(request:WSGIRequest) -> JsonResponse:
+    """
+    for a given user, return all the cloud accounts that has been added.
+    :param request: the ws
+    :return: a stringfied json array of account creds
+    """
+    accs = get_list_or_404()
+    for acc in accs:
+        try:
+            mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+            client = getattr(mod, "get_client")(acc)
+            cred = getattr(mod, "get_upload_creds")(client, None)
+            creds.append(cred)
+        except Exception as e:
+            print(str(e))
+            return JsonResponse({'error': str(e)})
+    return json.dumps(creds)
 
 
 @login_required
@@ -291,6 +319,8 @@ def create_folder(request: WSGIRequest) -> JsonResponse:
         return JsonResponse({'error': 'missing fields'})
     path = normalize_path(request.POST['path'])
     accs = []
+    list = request.POST.getlist('pk')
+    print(list)
     for pk in request.POST.getlist('pk'):
         acc = get_object_or_404(StorageAccount, pk=pk, user=request.user)
         accs.append(acc)

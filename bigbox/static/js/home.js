@@ -1,9 +1,12 @@
 var uploaders = [];
+var CHUNK_REMARK = "split_chunk ";
 var MAX_UP_THREADS = 3;
+var is_big_file = false;
 var locale = window.navigator.userLanguage || window.navigator.language;
 if (locale) moment.locale(locale);
 $(document).on("click", ".upload-to-cloud", function (e) {
     e.preventDefault();
+    is_big_file = false;
     var self = $(this);
     var pk = self.data("pk");
     var dname = self.text();
@@ -40,6 +43,13 @@ $(document).on("click", ".upload-to-cloud", function (e) {
     var clicked = e.target.nodeName.toLowerCase();
     if (clicked !== "td") return;
     $(this).find("input").click();
+}).on("click", "#upload-to-all", function(e){
+    e.preventDefault();
+    is_big_file = true;
+    $("#upload-to").text("Big files");
+    $("#upload-form").show();
+    $("#upload-loader").hide();
+    $("#upload-dialog").modal();
 });
 window.onpopstate = function(event) {
     path = event.state;
@@ -74,7 +84,7 @@ $(document).ready(function () {
     });
     $('#upload-dialog').on('show.bs.modal', function () {
         uploaders = [];
-        $('#file-input').prop('disabled', false).val('');
+        $('#file-input').prop('disabled', false).val('').prop('multiple', !is_big_file);
         $('#upload-add').removeClass('disabled');
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
@@ -84,30 +94,47 @@ $(document).ready(function () {
         loadFolder();
     });
     $('#file-input').on('change', function (e) {
-        var files = e.target.files, file;
-        for (var i = 0; i < files.length; i++) {
-            file = files[i];
+        e.preventDefault();
+        if (is_big_file) {
+            var file = e.target.files;
             $('#file-list').append('<tr><td><div class="name">' + file.name + '</div></td><td style="width:100%">'
                 + '<div class="progress active"><div class="progress-bar progress-bar-info" style="width:0"><span>'
                 + formatBytes(file.size) + '</span></div></div></td>'
                 + '</tr>');
-            uploaders.push(new ChunkedUploader(file, $('.progress-bar').last()));
+            $('#file-input').prop('disabled', true);
+            $('#upload-add').addClass('disabled');
+            uploaders.push(new BigUploader(file[0], $('.progress-bar').last(), acc, cloudclass));
+        } else {
+            var files = e.target.files, file;
+            for (var i = 0; i < files.length; i++) {
+                file = files[i];
+                $('#file-list').append('<tr><td><div class="name">' + file.name + '</div></td><td style="width:100%">'
+                    + '<div class="progress active"><div class="progress-bar progress-bar-info" style="width:0"><span>'
+                    + formatBytes(file.size) + '</span></div></div></td>'
+                    + '</tr>');
+                uploaders.push(new ChunkedUploader(file, $('.progress-bar').last()));
+            }
         }
         $('#file-input').val('');
         $('#upload-start').prop('disabled', uploaders.length === 0);
         $('#upload-clear').prop('disabled', uploaders.length === 0);
     });
     $('#upload-form').on('submit', function (e) {
+        e.preventDefault();
         $('#file-input').prop('disabled', true);
         $('#upload-add').addClass('disabled');
         $('#upload-start').prop('disabled', true);
         $('#upload-clear').prop('disabled', true);
-        $.each(uploaders, function (i, uploader) {
-            uploader.wait();
-        });
-        checkUpQueue();
-        $('#master-progress-container').show();
-        e.preventDefault();
+        if (is_big_file) {
+            uploaders[0].start();// start big file uploader
+        } else {
+            $.each(uploaders, function (i, uploader) {
+                uploader.wait();
+            });
+            checkUpQueue();
+            $('#master-progress-container').show();
+            e.preventDefault();
+        }
     });
     $('#new-folder-form').on('submit', function (e) {
         $('#create-folder-button').prop('disabled', true).children('span').removeClass('hidden');
@@ -241,7 +268,7 @@ function ChunkedUploader(file, progress_bar) {
     this.file = file;
     this.progress_bar = progress_bar;
     this.file_size = this.file.size;
-    this.file_name = this.file.name;
+    this.file_name = CHUNK_REMARK + this.file.name;
     this.state = 0;
     this.path = path;
     this.chunk_size = ci_chunk_size(this.file_size);
@@ -316,3 +343,149 @@ ChunkedUploader.prototype = {
         checkUpQueue();
     }
 };
+
+
+function BigUploader(file, progress_bar, acc, cloudclass) {
+
+    if (!this instanceof BigUploader) {
+        return new BigUploader(file, options);
+    }
+    this.file = file;
+    this.progress_bar = progress_bar;
+    this.file_size = 0; // represent total file size in the request to drive
+    this.ori_file_size = this.file.size;
+    this.file_name = this.file.name;
+    this.state = 0;
+    this.path = path;
+
+    this.chunk_size = 0;
+    this.range_start = 0;
+    this.range_end = this.chunk_size;
+    this.cloud_info = acc;
+    this.cloud_num = acc.length;
+    this.finished_cloud = 0;
+    this.cloudclass = cloudclass;
+    this.up_range_start = 0;
+    this.up_range_end = this.chunk_size;
+    this.range_diff = 0;
+
+    this.one_cloud_up_size = Math.ceil(this.ori_file_size / this.cloud_num);
+    this.up_record = {};
+    if ('mozSlice' in this.file) this.slice_method = 'mozSlice';
+    else if ('webkitSlice' in this.file) this.slice_method = 'webkitSlice';
+    else this.slice_method = 'slice';
+    this.upload_request = new XMLHttpRequest();
+    this.upload_request.addEventListener("load", this._onChunkComplete.bind(this), false);
+    this.upload_request.addEventListener("progress", this._onProgress.bind(this), false);
+    this.upload_request.addEventListener("error", this._onError.bind(this), false);
+}
+
+function getNextCloudCreds(pk, classname, done) {
+    $.ajax({
+        url: "/get-up-creds",
+        data: {"pk": pk},
+        method: "GET",
+        dataType: "json",
+        success: function (data) {
+            $.getScript("/static/js/" + classname + ".js", function () {
+                ci_init(data, "/", pk, function () {
+                    done();
+                });
+            });
+        }
+    });
+}
+
+function changeUploader(uploader) {
+    uploader.chunk_size = ci_chunk_size();
+}
+
+BigUploader.prototype = {
+    _upload: function () {
+        var chunk;
+        var target_size = (this.finished_cloud + 1) * this.one_cloud_up_size;// the range limiting by cloud size
+
+        if (this.up_range_end > this.ori_file_size) {
+            this.up_range_end = this.ori_file_size;
+        } else if (this.up_range_end > target_size) {
+            this.up_range_end = target_size;
+        }
+        this.range_start = this.up_range_start - this.range_diff;
+        this.range_end = this.up_range_end - this.range_diff;
+
+        chunk = this.file[this.slice_method](this.up_range_start, this.up_range_end);
+        ci_prepare_chunk(this, chunk);
+        this.upload_request.send(chunk);
+    },
+    _onProgress: function (evt) {
+        var real_total = evt.loaded + this.up_range_start;
+        this._updateProgressBar(real_total);
+    },
+    _updateProgressBar: function (total) {
+        updateProgressBar(this.progress_bar, total, this.ori_file_size, formatBytes);
+    },
+    _onChunkComplete: function () {
+        if (this.up_range_end >= this.ori_file_size || this.up_range_end >= (this.finished_cloud + 1 ) * this.one_cloud_up_size) {
+            this._onUploadComplete();
+            return;
+        }
+        this._updateProgressBar(this.up_range_end);
+        this.up_range_start = this.up_range_end;
+        this.up_range_end = this.up_range_start + this.chunk_size;
+        this._upload();
+    },
+    _onUploadComplete: function () {
+        // complete all the uploads for one cloud
+        // count whether reaching the last cloud
+        this.up_record[this.cloud_info[this.finished_cloud]] = [this.up_range_start, this.up_range_end];
+        ci_finish(this, this._onDone.bind(this));
+        this.finished_cloud += 1;
+        this.file_size = Math.min(this.one_cloud_up_size, this.ori_file_size - this.finished_cloud * this.one_cloud_up_size);
+        if (this.finished_cloud < this.cloud_num && this.up_range_end < this.ori_file_size ) {
+            getNextCloudCreds(this.cloud_info[this.finished_cloud], this.cloudclass[this.finished_cloud],
+                function() {
+                    this.chunk_size = ci_chunk_size(this.file_size);
+                    ci_start(this, function() {
+                        this.up_range_start = this.up_range_end;
+                        this.up_range_end = this.up_range_start + this.chunk_size;
+                        this.range_diff = this.up_range_start;
+                        this._upload();
+                    }.bind(this));
+                }.bind(this));
+        } else {
+        // write upload record to file
+            alert("finish!");
+        }
+    },
+    _onError: function () {
+        if (this.ignore_failure) {
+            this._updateProgressBar(this.up_range_end);
+            this._onChunkComplete();
+            return;
+        }
+        this.fail('Error during upload');
+    },
+    _onDone: function () {
+        this.state = 3;
+        updateProgressBar(this.progress_bar, 1, 1);
+    },
+    wait: function () {
+        this.state = 1;
+        this.progress_bar.children('span').text('Waiting ...');
+    },
+    start: function () {
+        this.file_size = Math.min(this.one_cloud_up_size, this.ori_file_size - this.finished_cloud * this.one_cloud_up_size);
+        getNextCloudCreds(this.cloud_info[0], this.cloudclass[0], function(){
+        this.chunk_size = ci_chunk_size(this.file_size);
+        this.state = 2;
+        ci_start(this, this._upload.bind(this));
+        this._updateProgressBar(0);
+        }.bind(this));
+    },
+    fail: function (text) {
+        this.state = 4;
+        this.progress_bar.css('width', '0');
+        this.progress_bar.children('span').text(text).css('color', 'red').css('text-shadow', '1px 1px white');
+    }
+};
+
