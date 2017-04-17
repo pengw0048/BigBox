@@ -283,35 +283,16 @@ def get_upload_creds(request: WSGIRequest) -> JsonResponse:
     """
     acc = get_object_or_404(StorageAccount, pk=request.GET.get('pk', ''), user=request.user)
     data = request.GET.get('data', None)
-    try:
-        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-        client = getattr(mod, "get_client")(acc)
-        creds = getattr(mod, "get_upload_creds")(client, data)
-    except Exception as e:
-        print(str(e))
-        return JsonResponse({'error': str(e)})
-    else:
-        print(creds)
-        return JsonResponse(creds)
-
-@login_required
-def get_all_creds(request:WSGIRequest) -> JsonResponse:
-    """
-    for a given user, return all the cloud accounts that has been added.
-    :param request: the ws
-    :return: a stringfied json array of account creds
-    """
-    accs = get_list_or_404()
-    for acc in accs:
-        try:
-            mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-            client = getattr(mod, "get_client")(acc)
-            cred = getattr(mod, "get_upload_creds")(client, None)
-            creds.append(cred)
-        except Exception as e:
-            print(str(e))
-            return JsonResponse({'error': str(e)})
-    return json.dumps(creds)
+    #try:
+    mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+    client = getattr(mod, "get_client")(acc)
+    creds = getattr(mod, "get_upload_creds")(client, data)
+    #except Exception as e:
+    #    print(str(e))
+    #    return JsonResponse({'error': str(e)})
+    #else:
+    print(creds)
+    return JsonResponse(creds)
 
 
 @login_required

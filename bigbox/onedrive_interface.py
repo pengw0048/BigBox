@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
+import urllib
 import requests
 from dateutil import parser
 from django.conf import settings
@@ -127,9 +128,11 @@ def get_upload_creds(od: str, data: str) -> dict:
         name = j['name']
     except:
         return {}
-    full_path = path.strip('/') + '/' + name
-    r = requests.post(settings.ONEDRIVE_BASE_URL + 'drive/root:/' + full_path + ':/createUploadSession',
+    full_path = path.rstrip('/') + '/' + name
+    r = requests.post(settings.ONEDRIVE_BASE_URL + 'drive/root:' + urllib.parse.quote(full_path) + ':/createUploadSession',
                       headers={'Authorization': 'bearer ' + od})
+    print(settings.ONEDRIVE_BASE_URL + 'drive/root:' + urllib.parse.quote(full_path) + ':/createUploadSession')
+    print('a ' + r.text)
     return {'url': r.json()['uploadUrl']}
 
 

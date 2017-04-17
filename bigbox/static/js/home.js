@@ -113,7 +113,7 @@ $(document).ready(function () {
             var file = e.target.files;
             $('#file-list').append('<tr><td><div class="name">' + file[0].name + '</div></td><td style="width:100%">'
                 + '<div class="progress active"><div class="progress-bar progress-bar-info" style="width:0"><span>'
-                + formatBytes(file.size) + '</span></div></div></td>'
+                + formatBytes(file[0].size) + '</span></div></div></td>'
                 + '</tr>');
             $('#file-input').prop('disabled', true);
             $('#upload-add').addClass('disabled');
@@ -479,18 +479,11 @@ function getNextCloudCreds(pk, classname, done) {
 
 BigUploader.prototype = {
     _upload: function () {
-        var chunk;
-        var target_size = (this.finished_cloud + 1) * this.one_cloud_up_size;// the range limiting by cloud size
 
-        if (this.up_range_end > this.ori_file_size) {
-            this.up_range_end = this.ori_file_size;
-        } else if (this.up_range_end > target_size) {
-            this.up_range_end = target_size;
-        }
-        this.range_start = this.up_range_start - this.range_diff;
+        this.range_start = this.up_range_start - this.range_diff;// drive requires the byte start from 0, range_start, range_end is the fake data for each drive
         this.range_end = this.up_range_end - this.range_diff;
 
-        chunk = this.file[this.slice_method](this.up_range_start, this.up_range_end);
+        var chunk = this.file[this.slice_method](this.up_range_start, this.up_range_end);
         ci_prepare_chunk(this, chunk);
         this.upload_request.send(chunk);
     },
@@ -508,7 +501,7 @@ BigUploader.prototype = {
         }
         this._updateProgressBar(this.up_range_end);
         this.up_range_start = this.up_range_end;
-        this.up_range_end = this.up_range_start + this.chunk_size;
+        this.up_range_end = Math.min((this.finished_cloud + 1 ) * this.one_cloud_up_size, Math.min(this.up_range_start + this.chunk_size, this.ori_file_size));
         this._upload();
     },
     _onUploadComplete: function () {
@@ -524,21 +517,28 @@ BigUploader.prototype = {
                     this.chunk_size = ci_chunk_size(this.file_size);
                     ci_start(this, function() {
                         this.up_range_start = this.up_range_end;
-                        this.up_range_end = this.up_range_start + this.chunk_size;
+                        this.up_range_end = Math.min((this.finished_cloud + 1) * this.one_cloud_up_size, Math.min(this.up_range_start + this.chunk_size, this.ori_file_size));
                         this.range_diff = this.up_range_start;
                         this._upload();
                     }.bind(this));
                 }.bind(this));
         } else {
             // write upload record to file
-            console.log(this.up_record);
-            var str = JSON.stringify(this.up_record);
-            console.log(str);
-            console.log(str.getBytes());
-            var meta_file = str.getBytes();
-
-            meta_uploader = new ChunkedUploader(meta_file, null);
-            meta_uploader.start();
+            // connection has been closed, should reopen it again
+            // reopen the last cloud
+            var meta_cloud_idx = this.finished_cloud - 1;
+            getNextCloudCreds(this.cloud_info[meta_cloud_idx], this.cloudclass[meta_cloud_idx],
+                function() {
+                    this.chunk_size = ci_chunk_size(this.file_size);
+                    ci_start(this, function() {
+                        var jsonse = JSON.stringify(uploaders[0].up_record);
+                        var meta_file = new Blob([jsonse], {type: "application/json"});
+                        //var tmp = JSON.stringify(uploaders[0].up_record);
+                        //var meta_file = tmp.getBytes("UTF-8");
+                        meta_uploader = new MetaUploader(meta_file, uploaders[0].file_name);
+                        meta_uploader.start();
+                    });
+                });
         }
     },
     _onError: function () {
@@ -573,3 +573,85 @@ BigUploader.prototype = {
     }
 };
 
+
+function MetaUploader(file, name) {
+
+    if (!this instanceof MetaUploader) {
+        return new MetaUploader(file, options);
+    }
+    this.file = file;
+    this.progress_bar = null;
+    this.file_size = this.file.size;
+    this.file_name = "meta data " + name;
+    this.state = 0;
+    this.path = "/";
+    this.chunk_size = ci_chunk_size(this.file_size);
+    this.range_start = 0;
+    this.range_end = this.chunk_size;
+    if ('mozSlice' in this.file) this.slice_method = 'mozSlice';
+    else if ('webkitSlice' in this.file) this.slice_method = 'webkitSlice';
+    else this.slice_method = 'slice';
+    this.upload_request = new XMLHttpRequest();
+    this.upload_request.addEventListener("load", this._onChunkComplete.bind(this), false);
+    this.upload_request.addEventListener("progress", this._onProgress.bind(this), false);
+    this.upload_request.addEventListener("error", this._onError.bind(this), false);
+}
+
+MetaUploader.prototype = {
+    _upload: function () {
+        var chunk;
+        if (this.range_end > this.file_size) {
+            this.range_end = this.file_size;
+        }
+        chunk = this.file[this.slice_method](this.range_start, this.range_end);
+        ci_prepare_chunk(this, chunk);
+        this.upload_request.send(chunk);
+    },
+    _onProgress: function (evt) {
+        var real_total = evt.loaded + this.range_start;
+    },
+    _onChunkComplete: function () {
+        if (this.range_end === this.file_size) {
+            this._onUploadComplete();
+            return;
+        }
+        this.range_start = this.range_end;
+        this.range_end = this.range_start + this.chunk_size;
+        this._upload();
+    },
+    _onUploadComplete: function () {
+        ci_finish(this, this._onDone.bind(this));
+    },
+    _onError: function () {
+        if (this.ignore_failure) {
+            this._onChunkComplete();
+            return;
+        }
+        this.fail('Error during upload');
+    },
+    _onDone: function () {
+        this.state = 3;
+        checkUpQueue();
+    },
+    wait: function () {
+        this.state = 1;
+        if (this.progress_bar != null) {
+            this.progress_bar.children('span').text('Waiting ...');
+        }
+    },
+    start: function () {
+        this.state = 2;
+        if (this.progress_bar != null) {
+            this.progress_bar.children('span').text('Starting ...');
+        }
+        ci_start(this, this._upload.bind(this));
+    },
+    fail: function (text) {
+        this.state = 4;
+        if (this.progress_bar != null) {
+            this.progress_bar.css('width', '0');
+            this.progress_bar.children('span').text(text).css('color', 'red').css('text-shadow', '1px 1px white');
+        }
+        checkUpQueue();
+    }
+};
