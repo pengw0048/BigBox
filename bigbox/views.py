@@ -14,9 +14,8 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http import *
-from django.shortcuts import render, get_object_or_404, get_list_or_404
+from django.shortcuts import render, get_object_or_404
 from typing import *
-import json
 
 from .forms import *
 from .models import *
@@ -283,16 +282,16 @@ def get_upload_creds(request: WSGIRequest) -> JsonResponse:
     """
     acc = get_object_or_404(StorageAccount, pk=request.GET.get('pk', ''), user=request.user)
     data = request.GET.get('data', None)
-    #try:
-    mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-    client = getattr(mod, "get_client")(acc)
-    creds = getattr(mod, "get_upload_creds")(client, data)
-    #except Exception as e:
-    #    print(str(e))
-    #    return JsonResponse({'error': str(e)})
-    #else:
-    print(creds)
-    return JsonResponse(creds)
+    try:
+        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+        client = getattr(mod, "get_client")(acc)
+        creds = getattr(mod, "get_upload_creds")(client, data)
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({'error': str(e)})
+    else:
+        print(creds)
+        return JsonResponse(creds)
 
 
 @login_required
