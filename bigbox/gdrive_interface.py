@@ -78,18 +78,19 @@ def get_space(g: str) -> dict:
     return {'used': used, 'total': total}
 
 
-def find_path_id(g: str, path: str, create: bool = False) -> str:
+def find_path_id(g: str, path: str, create: bool = False, is_file=False) -> str:
     fid = 'root'
     if path == '/':
         return fid
     levels = path.strip('/').split('/')
     try:
         for level in levels:
+            q = "'%s' in parents and name='%s' and trashed=false" \
+                % (fid.replace("'", "\\'"), level.replace("'", "\\'"))
+            if not is_file:
+                q += " and mimeType='application/vnd.google-apps.folder'"
             r = requests.get("https://www.googleapis.com/drive/v3/files",
-                             params={'q': "'%s' in parents and name='%s' and trashed=false and "
-                                          "mimeType='application/vnd.google-apps.folder'"
-                                          % (fid.replace("'", "\\'"), level.replace("'", "\\'")),
-                                     'fields': "files(id,mimeType)"},
+                             params={'q': q, 'fields': "files(id,mimeType)"},
                              headers={'Authorization': 'Bearer ' + g})
             fs = r.json()['files']
             if len(fs) < 1:
@@ -108,8 +109,6 @@ def create_folder(g: str, path: str, name: str) -> dict:
     if path == 'root' or path + name == '/':
         return {'id': 'root'}
     fullpath = path if name == '' else path + name
-    print("create_folder")
-    print(find_path_id(g, fullpath, True))
     return {'id': find_path_id(g, fullpath, True)}
 
 
@@ -147,7 +146,9 @@ def get_file_list(g: str, path: str) -> list:
     return ret
 
 
-def get_down_link(g: str, fid: str) -> str:
+def get_down_link(g: str, fid: str, path: str) -> str:
+    if not fid:
+        fid = find_path_id(g, path, False, True)
     r = requests.get('https://www.googleapis.com/drive/v3/files/' + fid,
                      params={'fields': 'webContentLink,webViewLink'},
                      headers={'Authorization': 'Bearer ' + g})

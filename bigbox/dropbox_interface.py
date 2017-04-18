@@ -77,7 +77,9 @@ def get_file_list(db: str, path: str) -> list:
     return ret
 
 
-def get_down_link(db: str, fid: str) -> str:
+def get_down_link(db: str, fid: str, path: str) -> str:
+    if not fid:
+        fid = path
     r = requests.post('https://api.dropboxapi.com/2/files/get_temporary_link',
                       json={'path': fid},
                       headers={'Authorization': 'Bearer ' + db})

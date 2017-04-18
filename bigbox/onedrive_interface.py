@@ -1,8 +1,8 @@
 import json
+import urllib
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
-import urllib
 import requests
 from dateutil import parser
 from django.conf import settings
@@ -92,7 +92,7 @@ def get_file_list(od: str, path: str) -> list:
     if path == '/':
         path = 'drive/root/children'
     else:
-        path = 'drive/root:' + path + ':/children'
+        path = 'drive/root:' + urllib.parse.quote(path) + ':/children'
     try:
         fs = requests.get(settings.ONEDRIVE_BASE_URL + path,
                           headers={'Authorization': 'bearer ' + od}).json()
@@ -110,8 +110,12 @@ def get_file_list(od: str, path: str) -> list:
     return ret
 
 
-def get_down_link(od: str, fid: str) -> str:
-    r = requests.get(settings.ONEDRIVE_BASE_URL + 'drive/items/' + fid + '/content',
+def get_down_link(od: str, fid: str, path: str) -> str:
+    if fid:
+        loc = 'drive/items/' + fid + '/content'
+    else:
+        loc = 'drive/root:' + urllib.parse.quote(path) + ':/content'
+    r = requests.get(settings.ONEDRIVE_BASE_URL + loc,
                      headers={'Authorization': 'bearer ' + od})
     if r.status_code < 300 or r.status_code >= 400:
         r.raise_for_status()
@@ -131,8 +135,6 @@ def get_upload_creds(od: str, data: str) -> dict:
     full_path = path.rstrip('/') + '/' + name
     r = requests.post(settings.ONEDRIVE_BASE_URL + 'drive/root:' + urllib.parse.quote(full_path) + ':/createUploadSession',
                       headers={'Authorization': 'bearer ' + od})
-    print(settings.ONEDRIVE_BASE_URL + 'drive/root:' + urllib.parse.quote(full_path) + ':/createUploadSession')
-    print('a ' + r.text)
     return {'url': r.json()['uploadUrl']}
 
 
@@ -140,7 +142,7 @@ def create_folder(od: str, path: str, name: str) -> dict:
     if path == '/':
         path = 'drive/root/children'
     else:
-        path = 'drive/root:' + path.rstrip('/') + ':/children'
+        path = 'drive/root:' + urllib.parse.quote(path.rstrip('/')) + ':/children'
     r = requests.post(settings.ONEDRIVE_BASE_URL + path,
                       json={'name': name, 'folder': {}},
                       headers={'Authorization': 'bearer ' + od})
