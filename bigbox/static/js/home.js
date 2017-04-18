@@ -253,7 +253,7 @@ function generateFiles(items) {
         if (self.is_folder) {
             htmlContent += ('#" class="folder-link">');
         } else {
-            htmlContent += ('/get-down?pk=' + self.acc + '&id=' + self.id + '" target="_blank">');
+            htmlContent += ('/get-down?pk=' + self.acc + '&id=' + encodeURIComponent(self.id) + '" target="_blank">');
         }
         htmlContent += (self.name + '</a><span class="pull-right">');
         for (var j = 0; j < self.colors.length; j++) {
