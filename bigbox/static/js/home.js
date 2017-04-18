@@ -217,10 +217,20 @@ $(document).ready(function () {
             }
         });
     });
+    $('.split_chunk').on('submit', function(e) {
+        var file_id = $('.split_chunk').get('id');
+        var file_name = $('.split_chunk').get('file_name');
+        downloadBigFile(file_name);
+    });
     $("[name='show-in-cloud']").on('change', function () {
         loadFolder();
     });
 });
+
+function downloadBigFile(file_name) {
+   // go through all the cloud accounts and get content from each of them
+
+}
 
 function generateDirList(fullpath) {
     var items = fullpath.split("/");
@@ -249,13 +259,23 @@ function generateFiles(items) {
         } else {
             htmlContent += (" fa-file-o");
         }
-        htmlContent += ('"></i> &nbsp;<a href="');
-        if (self.is_folder) {
-            htmlContent += ('#" class="folder-link">');
+        htmlContent += ('"></i> &nbsp;');
+
+
+        if (self.name.substring(0, 11) == "split_chunk") {
+            htmlContent += ('<form' + ' method="post" ' + ' class="split_chunk" ' + '&id="' + self.id +'" file_name="'
+             + self.name + '" "target="_blank">' + '~~~');// if submit, then do something
+            htmlContent += (self.name + '</form><span class="pull-right">');
         } else {
-            htmlContent += ('/get-down?pk=' + self.acc + '&id=' + self.id + '" target="_blank">');
+            htmlContent += ('<a href="');
+            if (self.is_folder) {
+                htmlContent += ('#" class="folder-link">');
+            } else {
+                htmlContent += ('/get-down?pk=' + self.acc + '&id=' + self.id + '" target="_blank">');
+            }
+            htmlContent += (self.name + '</a><span class="pull-right">');
         }
-        htmlContent += (self.name + '</a><span class="pull-right">');
+        // if the file is the splitted file, then have to get split chunk from each folder
         for (var j = 0; j < self.colors.length; j++) {
             htmlContent += (' <i class="color-icon" style="background-color: ' + self.colors[j] + '"></i>');
         }
