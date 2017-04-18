@@ -269,6 +269,8 @@ def get_download_link(request: WSGIRequest) -> HttpResponse:
     else:
         if not link:
             return HttpResponseNotFound()
+        elif 'astext' in request.GET:
+            return HttpResponse(link)
         else:
             return HttpResponseRedirect(link)
 
