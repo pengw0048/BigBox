@@ -45,11 +45,10 @@ class StorageAccount(models.Model):
 
 class SharedItem(models.Model):
     link = models.CharField(max_length=18, db_index=True)
-    account = models.ForeignKey(StorageAccount)
     name = models.TextField()
     is_public = models.BooleanField()
     is_folder = models.BooleanField()
-    item_id = models.TextField()
+    items = models.TextField()
     created_at = models.DateTimeField()
     view_count = models.IntegerField()
     download_count = models.IntegerField()
