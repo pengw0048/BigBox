@@ -41,3 +41,15 @@ class StorageAccount(models.Model):
             color = hls_to_rgb(random(), 0.8, 0.9)
             self.color = '#%02x%02x%02x' % (int(color[0] * 256), int(color[1] * 256), int(color[2] * 256))
         super().save(*args, **kwargs)
+
+
+class SharedItem(models.Model):
+    link = models.CharField(max_length=18, db_index=True)
+    name = models.TextField()
+    is_public = models.BooleanField()
+    is_folder = models.BooleanField()
+    items = models.TextField()
+    created_at = models.DateTimeField()
+    view_count = models.IntegerField()
+    download_count = models.IntegerField()
+    readable_users = models.ManyToManyField(User)
