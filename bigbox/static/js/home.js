@@ -241,7 +241,13 @@ $(document).ready(function () {
             success: function (data) {
                 $('#share-form-button').children('.spinning').addClass('hidden');
                 $('#share-form-button').children('.ok').removeClass('hidden');
-                $('#share-result').text(data.result);
+                if ('error' in data) {
+                    $('#share-result').html('Sorry, an error happened:<br/>' + data.error);
+                } else if ('link' in data) {
+                    $('#share-result').html('Success!<br/>' + (v === 'public' ? 'Share this link: ' : 'Link sent to recipients by email.')
+                        + '<div class="form-group"><div class="input-group"><input class="form-control" id="foo" value="' + data.link + '" readonly><span class="input-group-btn"><button class="btn form-control" data-clipboard-target="#foo" type="button" id="copy-button">Copy</button></span></div></div>');
+                    new Clipboard('#copy-button');
+                }
             }
         });
     });
