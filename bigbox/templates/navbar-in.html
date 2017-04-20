@@ -15,7 +15,7 @@
                     <li {% if active_clouds %}class="active"{% endif %}><a href="{% url 'clouds' %}">Clouds</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
-                    <li><span class="navbar-text">{{ user.get_full_name }} (${{ user.username }})</span></li>
+                    <li><span class="navbar-text">{{ user.get_full_name }} ({{ user.username }})</span></li>
                     <li><a href="{% url 'logout' %}">Sign Out</a></li>
                 </ul>
             </div>
