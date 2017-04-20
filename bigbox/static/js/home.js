@@ -1,4 +1,5 @@
 var uploaders = [];
+var SPLIT_PATH = "/";
 var CHUNK_REMARK = "split_chunk ";
 var MAX_UP_THREADS = 3;
 var is_big_file = false;
@@ -50,7 +51,11 @@ $(document).on("click", ".upload-to-cloud", function (e) {
     $("#upload-form").show();
     $("#upload-loader").hide();
     $("#upload-dialog").modal();
+}).on('click', '.split_chunk', function(e) {
+            var file_name = $(this).attr("file_name")
+            downloadBigFile(file_name);
 });
+
 window.onpopstate = function(event) {
     path = event.state;
     loadFolder();
@@ -217,11 +222,6 @@ $(document).ready(function () {
             }
         });
     });
-    $('.split_chunk').on('submit', function(e) {
-        var file_id = $('.split_chunk').get('id');
-        var file_name = $('.split_chunk').get('file_name');
-        downloadBigFile(file_name);
-    });
     $("[name='show-in-cloud']").on('change', function () {
         loadFolder();
     });
@@ -229,7 +229,19 @@ $(document).ready(function () {
 
 function downloadBigFile(file_name) {
    // go through all the cloud accounts and get content from each of them
-
+    $.ajax({
+        url: "/get-big-file",
+        method: "GET",
+        dataType: "json",
+        data: {"path": "/" + file_name},
+        success: function (data) {
+            console.log(data)
+            var file_name = data["link"];
+            console.log(file_name)
+            window.location.href = ("../static/bigfile/" + file_name);
+        }
+    });
+    // after going through all the clouds, download them
 }
 
 function generateDirList(fullpath) {
@@ -263,9 +275,9 @@ function generateFiles(items) {
 
 
         if (self.name.substring(0, 11) == "split_chunk") {
-            htmlContent += ('<form' + ' method="post" ' + ' class="split_chunk" ' + '&id="' + self.id +'" file_name="'
+            htmlContent += ('<div' + ' class="split_chunk" ' + '&id="' + self.id +'" file_name="'
              + self.name + '" "target="_blank">' + '~~~');// if submit, then do something
-            htmlContent += (self.name + '</form><span class="pull-right">');
+            htmlContent += (self.name + '</div><span class="pull-right">');
         } else {
             htmlContent += ('<a href="');
             if (self.is_folder) {

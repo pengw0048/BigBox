@@ -16,6 +16,7 @@ urlpatterns = [
     url(r'^home(?P<path>.*)$', views.file_list_view, name='list'),
     url(r'^get-files(?P<path>.*)$', views.get_files, name='get-files'),
     url(r'^get-down/?$', views.get_download_link, name='get-download'),
+    url(r'^get-big-file/?$', views.get_big_file, name='get-bigfile'),
     url(r'^get-up-creds/?$', views.get_upload_creds, name='get-upload-creds'),
     url(r'^create-folder/?$', views.create_folder, name='create-folder'),
     url(r'^delete/?$', views.delete, name='delete'),

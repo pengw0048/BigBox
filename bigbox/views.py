@@ -1,5 +1,6 @@
 import importlib
 import json
+import uuid
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import requests
@@ -264,6 +265,7 @@ def get_download_link(request: WSGIRequest) -> HttpResponse:
         client = getattr(mod, "get_client")(acc)
         link = getattr(mod, "get_down_link")(client, request.GET.get('id', None), request.GET.get('path', None))
     except Exception as e:
+        print("exception")
         print(str(e))
         return HttpResponseBadRequest(str(e))
     else:
@@ -273,6 +275,36 @@ def get_download_link(request: WSGIRequest) -> HttpResponse:
             return HttpResponse(link)
         else:
             return HttpResponseRedirect(link)
+
+@login_required
+def get_big_file(request: WSGIRequest) -> JsonResponse:
+    """
+    for a given file name, download each chunk from all the clouds, call the "cat" request in linux,
+    store them in static folder
+    after finishing the download, send notification to front end.
+    :return:
+    """
+    user = request.user
+    acc = StorageAccount.objects.filter(user=user)
+    path = request.GET.get('path')
+    file_name = str(uuid.uuid4())
+    file_path = "/Users/Judy/Desktop/web project/BigBox/bigbox/static/bigfile/" + file_name
+    print(file_path)
+    for account in acc:
+        try:
+            mod = importlib.import_module('bigbox.' + account.cloud.class_name)
+            client = getattr(mod, "get_client")(account)
+            link = getattr(mod, "get_down_link")(client, None, path)
+            # send request to different accounts
+            r = requests.get(link)
+            print(r)
+            with open(file_path, "a") as target:
+                target.write(r.text)
+            # call linux function "cat" to connect to different file
+        except Exception as e:
+            print(str(e))
+            return HttpResponseBadRequest(str(e))
+    return JsonResponse({'link': file_name})
 
 
 @login_required
