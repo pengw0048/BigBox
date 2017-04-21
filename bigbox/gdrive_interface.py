@@ -150,15 +150,12 @@ def get_down_link(g: str, fid: str, path: str) -> str:
     if not fid:
         fid = find_path_id(g, path, False, True)
     r = requests.get('https://www.googleapis.com/drive/v3/files/' + fid,
-                     params={'fields': 'webContentLink,webViewLink'},
-                     headers={'Authorization': 'Bearer ' + g})
-    if r.status_code != 200:
+                     params={'alt': 'media', 'access_token': g},
+                     allow_redirects=False)
+    if r.status_code < 300 or r.status_code >= 400:
         r.raise_for_status()
-    j = r.json()
-    if 'webContentLink' in j:
-        return j['webContentLink']
-    elif 'webViewLink' in j:
-        return j['webViewLink']
+    if 'Location' in r.headers:
+        return r.headers['Location']
     else:
         raise Exception('File not found')
 
