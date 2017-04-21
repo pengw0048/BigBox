@@ -13,6 +13,8 @@ local_settings.py
 
 __pycache__
 
+# big files directory
+bigbox/static/bigfile/*
 
 # PTVS files
 bin/

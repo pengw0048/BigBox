@@ -395,6 +395,7 @@ ChunkedUploader.prototype = {
             this.range_end = this.file_size;
         }
         chunk = this.file[this.slice_method](this.range_start, this.range_end);
+        console.log("range_start:" + this.range_start + " range_end:" + this.range_end);
         ci_prepare_chunk(this, chunk);
         this.upload_request.send(chunk);
     },
@@ -511,11 +512,15 @@ function getNextCloudCreds(pk, classname, done) {
 
 BigUploader.prototype = {
     _upload: function () {
+        if (this.up_range_start == this.up_range_end) {
+            this._onChunkComplete();
+        }// break the initiation
 
         this.range_start = this.up_range_start - this.range_diff;// drive requires the byte start from 0, range_start, range_end is the fake data for each drive
         this.range_end = this.up_range_end - this.range_diff;
 
         var chunk = this.file[this.slice_method](this.up_range_start, this.up_range_end);
+        console.log("up_start:" + this.up_range_start + " up_end:" + this.up_range_end);
         ci_prepare_chunk(this, chunk);
         this.upload_request.send(chunk);
     },
@@ -565,8 +570,6 @@ BigUploader.prototype = {
                     ci_start(this, function() {
                         var jsonse = JSON.stringify(uploaders[0].up_record);
                         var meta_file = new Blob([jsonse], {type: "application/json"});
-                        //var tmp = JSON.stringify(uploaders[0].up_record);
-                        //var meta_file = tmp.getBytes("UTF-8");
                         meta_uploader = new MetaUploader(meta_file, uploaders[0].file_name);
                         meta_uploader.start();
                     });
