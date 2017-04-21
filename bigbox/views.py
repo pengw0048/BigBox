@@ -103,9 +103,8 @@ def register(request: WSGIRequest) -> HttpResponse:
                     user.save()
                     token = default_token_generator.make_token(user)
                     email_body = """
-    Welcome to Big Box. Please click the link below to verify
-    your email address and complete the registration of your account:
-      http://%s%s
+Welcome to Big Box. Please click the link below to verify your email address and complete the registration of your account:
+    http://%s%s
     """ % (request.get_host(), reverse('confirm', args=[user.username, token]))
                     send_mail(subject="Verify your email address", message=email_body,
                               from_email=settings.EMAIL_ADDRESS, recipient_list=[user.email])
@@ -444,9 +443,20 @@ def do_share(request: WSGIRequest) -> JsonResponse:
     si = SharedItem(link=share_id, name=name, is_public=public, items=ids, created_at=datetime.now(), is_folder=False,
                     view_count=0, download_count=0)
     si.save()
+    link = "http://" + request.get_host() + "/shared?id=" + share_id
     if not public:
         si.readable_users.add(*people)
-    return JsonResponse({"link": "http://" + request.get_host() + "/shared?id=" + share_id})
+        si.save()
+        emails = []
+        for person in people:
+            emails.append(person.email)
+        email_body = """
+%s shared %s to you on BigBox. Please go to the following link and log in to see.
+    %s
+    """ % (request.user.username, name, link)
+        send_mail(subject=request.user.username + " shares files with you on BigBox", message=email_body,
+                  from_email=settings.EMAIL_ADDRESS, recipient_list=emails)
+    return JsonResponse({"link": link})
 
 
 # storage account related operations
