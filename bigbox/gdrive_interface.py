@@ -150,14 +150,26 @@ def get_down_link(g: str, fid: str, path: str) -> str:
     if not fid:
         fid = find_path_id(g, path, False, True)
     r = requests.get('https://www.googleapis.com/drive/v3/files/' + fid,
-                     params={'alt': 'media', 'access_token': g},
-                     allow_redirects=False)
-    if r.status_code < 300 or r.status_code >= 400:
-        r.raise_for_status()
-    if 'Location' in r.headers:
-        return r.headers['Location']
+                     params={'fields': 'mimeType,webContentLink,webViewLink'},
+                     headers={'Authorization': 'Bearer ' + g})
+    j = r.json()
+    if j['mimeType'].startswith('application/vnd.google-apps.'):
+        if 'webContentLink' in j:
+            return j['webContentLink']
+        elif 'webViewLink' in j:
+            return j['webViewLink']
+        else:
+            raise Exception('File not found')
     else:
-        raise Exception('File not found')
+        r = requests.get('https://www.googleapis.com/drive/v3/files/' + fid,
+                         params={'alt': 'media', 'access_token': g},
+                         allow_redirects=False)
+        if r.status_code < 300 or r.status_code >= 400:
+            r.raise_for_status()
+        if 'Location' in r.headers:
+            return r.headers['Location']
+        else:
+            raise Exception('File not found')
 
 
 def get_upload_creds(g: str, data: str) -> dict:
