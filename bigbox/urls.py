@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^delete/?$', views.delete, name='delete'),
     url(r'^rename/?$', views.rename, name='rename'),
     url(r'^share/?$', views.do_share, name='share'),
+    url(r'^sharing/?$', views.sharing, name='sharing'),
     url(r'^clouds/?$', views.storage_accounts, name='clouds'),
     url(r'^clouds/add/(?P<cloud>\w+)/?$', views.add_storage_account, name='cloud-add'),
     url(r'^clouds/rename/?$', views.rename_storage_account, name='cloud-rename'),

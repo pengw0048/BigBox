@@ -126,6 +126,7 @@ $(document).ready(function () {
         $('#share-tab-2').hide();
         $('#share-result').text('');
         $('.editable-text').editable();
+        $('#recipients').text('');
     }).on('hidden.bs.modal', function () {
         loadFolder();
     });

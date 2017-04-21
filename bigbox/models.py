@@ -44,6 +44,7 @@ class StorageAccount(models.Model):
 
 
 class SharedItem(models.Model):
+    owner = models.ForeignKey(User, related_name="owner")
     link = models.CharField(max_length=18, db_index=True)
     name = models.TextField()
     is_public = models.BooleanField()
