@@ -116,11 +116,11 @@ def get_down_link(od: str, fid: str, path: str) -> str:
     else:
         loc = 'drive/root:' + urllib.parse.quote(path) + ':/content'
     r = requests.get(settings.ONEDRIVE_BASE_URL + loc,
-                     headers={'Authorization': 'bearer ' + od})
+                     headers={'Authorization': 'bearer ' + od}, allow_redirects=False)
     if r.status_code < 300 or r.status_code >= 400:
         r.raise_for_status()
-    if r.url:
-        return r.url
+    if 'Location' in r.headers:
+        return r.headers['Location']
     else:
         raise Exception('File not found')
 

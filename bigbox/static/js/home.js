@@ -112,6 +112,27 @@ $(document).ready(function () {
         $('#master-progress-container').hide();
         loadFolder();
     });
+    $('#share-dialog').on('show.bs.modal', function () {
+        $('#recipients-group').hide();
+        $('#share-form-button').prop('disabled', true).children('span').addClass('hidden');
+        var sname = $("[name='select-file']:checked").first().parents('tr').find('a').text();
+        var snum = $("[name='select-file']:checked").length;
+        if (sname.length > 15) sname = sname.substring(0, 15) + "...";
+        if (snum > 1) sname += " and " + (snum - 1) + (snum == 2 ? " other" : " others");
+        $('#share-title').text(sname);
+        $("[name='share-visibility']").prop('checked', false).parents('label').removeClass('active');
+        $('#share-tab-1').show();
+        $('#share-tab-2').hide();
+        $('#share-result').text('');
+    }).on('hidden.bs.modal', function () {
+        loadFolder();
+    });
+    $("[name='share-visibility']").on('change', function () {
+        var v = $("[name='share-visibility']:checked").val();
+        if (v === 'public') $('#recipients-group').hide();
+        else $('#recipients-group').show();
+        $('#share-form-button').prop('disabled', false);
+    });
     $('#file-input').on('change', function (e) {
         e.preventDefault();
         if (is_big_file) {
@@ -191,6 +212,42 @@ $(document).ready(function () {
             complete: function () {
                 $('#rename-dialog').modal('hide');
                 $('#rename-form-button').prop('disabled', false).children('span').addClass('hidden');
+            }
+        });
+    });
+    $('#share-form').on('submit', function (e) {
+        $('#share-form-button').prop('disabled', true).children('.spinning').removeClass('hidden');
+        e.preventDefault();
+        var v = $("[name='share-visibility']:checked").val();
+        var arr = [];
+        $("[name='select-file']:checked").each(function (i, self) {
+            $($(self).data('id')).each(function (j, me) {
+                arr.push(me);
+            })
+        });
+        $('#share-result').text('Sharing ...');
+        $('#share-tab-1').hide();
+        $('#share-tab-2').show();
+        $.ajax({
+            url: "/share",
+            method: "POST",
+            dataType: "json",
+            data: {
+                "id": JSON.stringify(arr),
+                "name": $('#share-title').text(),
+                "visibility": v,
+                "recipients": $('#recipients').val()
+            },
+            success: function (data) {
+                $('#share-form-button').children('.spinning').addClass('hidden');
+                $('#share-form-button').children('.ok').removeClass('hidden');
+                if ('error' in data) {
+                    $('#share-result').html('Sorry, an error happened:<br/>' + data.error);
+                } else if ('link' in data) {
+                    $('#share-result').html('Success!<br/>' + (v === 'public' ? 'Share this link: ' : 'Link sent to recipients by email.')
+                        + '<div class="form-group"><div class="input-group"><input class="form-control" id="foo" value="' + data.link + '" readonly><span class="input-group-btn"><button class="btn form-control" data-clipboard-target="#foo" type="button" id="copy-button">Copy</button></span></div></div>');
+                    new Clipboard('#copy-button');
+                }
             }
         });
     });
@@ -320,11 +377,12 @@ function updateLeftPanel () {
     if (numsel === 0) {
         $('#files-op-panel').hide();
     } else {
-        $('#num-selecting-files').text(numsel);
         if (numsel === 1) {
-            $('#rename-button').show();
+            $('#num-selecting-files').text('1 item');
+            $('#rename-button').prop('disabled', false);
         } else {
-            $('#rename-button').hide();
+            $('#num-selecting-files').text(numsel + ' items');
+            $('#rename-button').prop('disabled', true);
         }
         $('#files-op-panel').show();
     }

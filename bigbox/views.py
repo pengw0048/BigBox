@@ -2,6 +2,7 @@ import importlib
 import json
 import uuid
 from concurrent.futures.thread import ThreadPoolExecutor
+from datetime import datetime
 
 import requests
 from concurrent.futures import as_completed
@@ -102,9 +103,8 @@ def register(request: WSGIRequest) -> HttpResponse:
                     user.save()
                     token = default_token_generator.make_token(user)
                     email_body = """
-    Welcome to Big Box. Please click the link below to verify
-    your email address and complete the registration of your account:
-      http://%s%s
+Welcome to Big Box. Please click the link below to verify your email address and complete the registration of your account:
+    http://%s%s
     """ % (request.get_host(), reverse('confirm', args=[user.username, token]))
                     send_mail(subject="Verify your email address", message=email_body,
                               from_email=settings.EMAIL_ADDRESS, recipient_list=[user.email])
@@ -419,6 +419,52 @@ def rename(request: WSGIRequest) -> JsonResponse:
         print(str(e))
         return JsonResponse({'error': str(e)})
     return JsonResponse(rets)
+
+
+@login_required
+@transaction.atomic
+def do_share(request: WSGIRequest) -> JsonResponse:
+    try:
+        ids = json.loads(request.POST["id"])
+        name = request.POST["name"]
+        public = (request.POST["visibility"] == "public")
+        recipients = request.POST["recipients"]
+        for id in ids:
+            for key, value in id.items():
+                if not StorageAccount.objects.filter(user=request.user, pk=key).exists():
+                    return JsonResponse({"error": "file not yours"})
+        if not public:
+            people = []
+            for uname in recipients.splitlines():
+                if "@" in uname:
+                    person = User.objects.filter(email=uname)
+                else:
+                    person = User.objects.filter(username=uname)
+                if not person.exists():
+                    return JsonResponse({"error": uname + " not exists"})
+                people.append(person.first())
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({"error": "missing fields"})
+    share_id = str(uuid.uuid4())[0:8]
+    si = SharedItem(link=share_id, name=name, is_public=public, items=ids, created_at=datetime.now(), is_folder=False,
+                    view_count=0, download_count=0)
+    si.save()
+    link = "http://" + request.get_host() + "/shared?id=" + share_id
+    if not public:
+        si.readable_users.add(*people)
+        si.save()
+        emails = []
+        for person in people:
+            emails.append(person.email)
+        email_body = """
+%s shared %s to you on BigBox. Please go to the following link and log in to see.
+    %s
+    """ % (request.user.username, name, link)
+        send_mail(subject=request.user.username + " shares files with you on BigBox", message=email_body,
+                  from_email=settings.EMAIL_ADDRESS, recipient_list=emails)
+    return JsonResponse({"link": link})
+
 
 # storage account related operations
 
