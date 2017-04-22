@@ -240,7 +240,8 @@ $(document).ready(function () {
                 "name": $('#share-title').text(),
                 "visibility": v,
                 "recipients": $('#recipients').val(),
-                "email": $('#share-email').prop('checked')
+                "email": $('#share-email').prop('checked'),
+                "basedir": path
             },
             success: function (data) {
                 $('#share-form-button').children('.spinning').addClass('hidden');
