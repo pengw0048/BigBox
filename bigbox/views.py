@@ -433,7 +433,7 @@ def do_share(request: WSGIRequest) -> JsonResponse:
         name = request.POST["name"]
         public = (request.POST["visibility"] == "public")
         recipients = request.POST["recipients"]
-        if recipients == '':
+        if not public and recipients == '':
             raise Exception()
         email = request.POST["email"]
         for id in ids:
