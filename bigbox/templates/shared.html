@@ -1,0 +1,83 @@
+{% extends 'barebone.html' %}
+{% block title %}{{ f.name | safe }} - File Sharing on BigBox{% endblock %}
+{% block body %}
+    {% load humanize %}
+    {% if user.is_authenticated %}
+        {% include 'navbar-in.html' %}
+    {% else %}
+        {% include 'navbar-out.html' %}
+    {% endif %}
+    <div class="mainframe">
+        {% include 'popupmsg.html' %}
+        <div class="page-header">
+            <h2 style="display: inline-block">
+                <span>{{ f.name }}</span>
+            </h2>
+            <span>&nbsp;&nbsp;
+                {% if f.is_public %}
+                    <small class="label label-success">public</small>{% else %}
+                    <small class="label label-info">shared</small>{% endif %}
+            </span>&nbsp;&nbsp;
+            {% if owner %}
+                <a href="{% url 'sharing' %}">Manage</a>
+            {% else %}
+                Owner: {{ f.owner.get_full_name }}
+                ({{ f.owner.username }})&nbsp;&nbsp;&nbsp;<span
+                    class="text-muted">{{ f.owner.email }}</span>
+            {% endif %}
+            <span class="clearfix"></span>
+        </div>
+        <div class="col-xs-12">
+            {% include 'popupmsg.html' %}
+            <ol class="breadcrumb" dir="ltr" id="dir_list_show">
+                <li class="breadcrumb-item"><a href="#"><i class="fa fa-fw fa-home fa-lg folder-link-full"
+                                                           data-path="/"></i></a></li>
+            </ol>
+        </div>
+        <div class="col-xs-12">
+            <div class="table-responsive">
+                <table id="listr-table" class="table table-hover">
+                    <colgroup>
+                        <col style="width:25px">
+                        <col>
+                        <col style="width:15%">
+                        <col style="width:20%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th class="checkbox-col">
+                            <div class="checkbox checkbox-primary"><input id="select-all" type="checkbox"
+                                                                          title=""><label></label></div>
+                        </th>
+                        <th class="text-xs-left" data-sort="string" id="th-name">Name</th>
+                        <th class="text-xs-left" data-sort="int">Size</th>
+                        <th class="text-xs-left" data-sort="int">Modified</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <td colspan="4">
+
+                        </td>
+                    </tr>
+                    </tfoot>
+                    <tbody id="file_list_show">
+                    <tr id="file-list-loader">
+                        <td colspan="4">
+                            <div class="loader"></div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script>var path = "/";</script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/listr.pack.css' %}">
+    <script src="{% static 'js/listr.pack.js' %}"></script>
+    <script src="{% static 'js/moment-with-locales.js' %}"></script>
+    <script src="{% static 'js/common.js' %}"></script>
+{% endblock %}

@@ -481,9 +481,20 @@ def sharing(request: WSGIRequest) -> HttpResponse:
     return render(request, 'sharing.html', {'my_sharing': my_sharing, 'shared_with_me': shared_with_me})
 
 
-@login_required
 def shared(request: WSGIRequest, sid: str) -> HttpResponse:
-    pass
+    entry = get_object_or_404(SharedItem, link=sid)
+    if not request.user.is_authenticated:
+        if not entry.is_public:
+            from django.contrib.auth.views import redirect_to_login
+            return redirect_to_login(request.get_full_path(), settings.LOGIN_URL, 'next')
+        owner = False
+    else:
+        if entry.owner == request.user:
+            owner = True
+        else:
+            owner = False
+            entry = get_object_or_404(SharedItem, link=sid, readable_users=request.user)
+    return render(request, 'shared.html', {'f': entry, 'owner': owner})
 
 
 @login_required
