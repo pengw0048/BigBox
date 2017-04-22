@@ -299,14 +299,18 @@ def get_big_file(request: WSGIRequest) -> JsonResponse:
             link = getattr(mod, "get_down_link")(client, None, path)
             # send request to different accounts
             r = requests.get(link)
+
             print(r)
 
-            with open(file_path + str(record), "wb") as target:
-                target.write(r.text)
+            d = r.decode('utf8')
+            print(type(d), d)
+
+            with open(file_path + str(record), "w") as target:
+                target.write(r.content)
                 record += 1
 
-            with open(file_path, "wb") as target:
-                target.write(r.text)
+            with open(file_path, "w") as target:
+                target.write(r.content)
             # call linux function "cat" to connect to different file
         except Exception as e:
             print(str(e))
