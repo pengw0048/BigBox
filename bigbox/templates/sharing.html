@@ -17,8 +17,9 @@
                     <p class="pull-left"><a href="{% url 'shared' f.link %}"><strong>{{ f.name }}</strong></a></p>
                     <div class="pull-right text-muted">{{ f.created_at | naturaltime }}</div>
                     <div class="clearfix"></div>
-                    <div class="pull-left">Owner: {{ f.owner.get_full_name }} ({{ f.owner.username }})&nbsp;&nbsp;&nbsp;<span
-                            class="text-muted">{{ f.owner.email }}</span></div>
+                    <p class="pull-left">Owner: {{ f.owner.get_full_name }}
+                        ({{ f.owner.username }})&nbsp;&nbsp;&nbsp;<span
+                                class="text-muted">{{ f.owner.email }}</span></p>
                     <div class="pull-right"><a href="{% url 'remove-shared' f.link %}">Remove me</a></div>
                     <div class="clearfix"></div>
                 </div>
