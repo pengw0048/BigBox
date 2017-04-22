@@ -206,7 +206,13 @@
                         </div>
                         <div class="form-group" id="recipients-group">
                             <label for="recipients">Recipients (Email or username, one per line):</label>
-                            <textarea class="form-control" rows="5" id="recipients"></textarea>
+                            <textarea class="form-control" rows="5" id="recipients" required></textarea>
+                            <div class="btn-group" data-toggle="buttons">
+                                <label class="btn btn-sm btn-default active">
+                                    <input type="checkbox" id="share-email" autocomplete="off" checked>Send email to
+                                    these people
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-body" id="share-tab-2">

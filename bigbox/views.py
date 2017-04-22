@@ -433,6 +433,9 @@ def do_share(request: WSGIRequest) -> JsonResponse:
         name = request.POST["name"]
         public = (request.POST["visibility"] == "public")
         recipients = request.POST["recipients"]
+        if recipients == '':
+            raise Exception()
+        email = request.POST["email"]
         for id in ids:
             for key, value in id.items():
                 if not StorageAccount.objects.filter(user=request.user, pk=key).exists():
@@ -458,15 +461,16 @@ def do_share(request: WSGIRequest) -> JsonResponse:
     if not public:
         si.readable_users.add(*people)
         si.save()
-        emails = []
-        for person in people:
-            emails.append(person.email)
-        email_body = """
+        if email == 'true':
+            emails = []
+            for person in people:
+                emails.append(person.email)
+            email_body = """
 %s shared %s to you on BigBox. Please go to the following link and log in to see.
     %s
-    """ % (request.user.username, name, link)
-        send_mail(subject=request.user.username + " shares files with you on BigBox", message=email_body,
-                  from_email=settings.EMAIL_ADDRESS, recipient_list=emails)
+""" % (request.user.username, name, link)
+            send_mail(subject=request.user.username + " shares files with you on BigBox", message=email_body,
+                      from_email=settings.EMAIL_ADDRESS, recipient_list=emails)
     return JsonResponse({"link": link})
 
 
