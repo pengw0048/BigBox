@@ -225,7 +225,10 @@ $(document).ready(function () {
         var arr = [];
         $("[name='select-file']:checked").each(function (i, self) {
             $($(self).data('id')).each(function (j, me) {
-                arr.push(me);
+                var k = Object.keys(me)[0];
+                var d = {};
+                d[k] = $(self).parents('tr').find('a').text();
+                arr.push(d);
             })
         });
         $('#share-result').text('Sharing ...');
