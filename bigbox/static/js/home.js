@@ -83,6 +83,7 @@ function loadFolder() {
 }
 $(document).ready(function () {
     history.replaceState(path, null, "/home"+path);
+    $.fn.editable.defaults.mode = 'inline';
     $('#select-all').change(function () {
         var checked = $(this).prop("checked");
         $("[name='select-file']").prop("checked", checked);
@@ -124,6 +125,8 @@ $(document).ready(function () {
         $('#share-tab-1').show();
         $('#share-tab-2').hide();
         $('#share-result').text('');
+        $('.editable-text').editable();
+        $('#recipients').text('');
     }).on('hidden.bs.modal', function () {
         loadFolder();
     });

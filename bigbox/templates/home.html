@@ -188,7 +188,9 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                    <h4 class="modal-title">Share <span id="share-title"></span></h4>
+                    <h4 class="modal-title">Share <span class="editable-text editable editable-click" id="share-title"
+                                                        data-type="text" data-pk="1" data-title="Enter display name"
+                                                        data-unsavedclass="" title=""> </span></h4>
                 </div>
                 <form id="share-form">
                     <div class="modal-body" id="share-tab-1">
@@ -225,9 +227,11 @@
 {% block scripts %}
     <script>var path = "{{ path }}"; var acc = {{ num }}; var cloudclass = {{ cloudclass | safe }};</script>
     {% load static %}
+    <link href="{% static 'css/bootstrap-editable.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/listr.pack.css' %}">
     <link rel="stylesheet" href="{% static 'css/jquery.fileupload.css' %}">
     <link rel="stylesheet" href="{% static 'css/awesome-bootstrap-checkbox.css' %}">
+    <script src="{% static 'js/bootstrap-editable.min.js' %}"></script>
     <script src="{% static 'js/listr.pack.js' %}"></script>
     <script src="{% static 'js/moment-with-locales.js' %}"></script>
     <script src="{% static 'js/common.js' %}"></script>

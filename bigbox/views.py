@@ -2,7 +2,6 @@ import importlib
 import json
 import uuid
 from concurrent.futures.thread import ThreadPoolExecutor
-from datetime import datetime
 
 import requests
 from concurrent.futures import as_completed
@@ -17,6 +16,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http import *
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 from typing import *
 
 from .forms import *
@@ -451,8 +451,8 @@ def do_share(request: WSGIRequest) -> JsonResponse:
         print(str(e))
         return JsonResponse({"error": "missing fields"})
     share_id = str(uuid.uuid4())[0:8]
-    si = SharedItem(link=share_id, name=name, is_public=public, items=ids, created_at=datetime.now(), is_folder=False,
-                    view_count=0, download_count=0)
+    si = SharedItem(link=share_id, name=name, is_public=public, items=ids, created_at=timezone.now(), is_folder=False,
+                    view_count=0, download_count=0, owner=request.user)
     si.save()
     link = "http://" + request.get_host() + "/shared?id=" + share_id
     if not public:
@@ -468,6 +468,12 @@ def do_share(request: WSGIRequest) -> JsonResponse:
         send_mail(subject=request.user.username + " shares files with you on BigBox", message=email_body,
                   from_email=settings.EMAIL_ADDRESS, recipient_list=emails)
     return JsonResponse({"link": link})
+
+
+def sharing(request: WSGIRequest) -> HttpResponse:
+    my_sharing = SharedItem.objects.filter(owner=request.user)
+    shared_with_me = SharedItem.objects.filter(readable_users=request.user)
+    return render(request, 'sharing.html', {'my_sharing': my_sharing, 'shared_with_me': shared_with_me})
 
 
 # storage account related operations
