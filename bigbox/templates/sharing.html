@@ -1,0 +1,62 @@
+{% extends 'barebone.html' %}
+{% block title %}Sharing - {{ user.username }}{% endblock %}
+{% block body %}
+    {% load static %}
+    {% load humanize %}
+    {% include 'navbar-in.html' with active_sharing='true' %}
+    <div class="container">
+        <div class="mainframe">
+            {% include 'popupmsg.html' %}
+            <div class="page-header">
+                <h2>
+                    <span>Files shared with me</span>
+                </h2>
+            </div>
+            {% for f in shared_with_me %}
+                <div class="acloud">
+                    <p class="pull-left"><a href="{% url 'shared' f.link %}"><strong>{{ f.name }}</strong></a></p>
+                    <div class="pull-right text-muted">{{ f.created_at | naturaltime }}</div>
+                    <div class="clearfix"></div>
+                    <div class="pull-left">Owner: {{ f.owner.get_full_name }} ({{ f.owner.username }})&nbsp;&nbsp;&nbsp;<span
+                            class="text-muted">{{ f.owner.email }}</span></div>
+                    <div class="pull-right"><a href="{% url 'remove-shared' f.link %}">Remove me</a></div>
+                    <div class="clearfix"></div>
+                </div>
+            {% endfor %}
+            <div class="page-header">
+                <h2>
+                    <span>Files I'm sharing</span>
+                </h2>
+            </div>
+            {% for f in my_sharing %}
+                <div class="acloud">
+                    <p class="pull-left"><a href="{% url 'shared' f.link %}"><strong>{{ f.name }}</strong></a></p>
+                    <div class="pull-right text-muted">{{ f.created_at | naturaltime }}</div>
+                    <div class="clearfix"></div>
+                    <p class="pull-left">Views: {{ f.view_count }} Downloads: {{ f.download_count }}</p>
+                    <div class="pull-right"><a href="{% url 'remove-sharing' f.link %}">Stop sharing</a></div>
+                    <div class="clearfix"></div>
+
+                    {% for p in f.readable_users.all %}
+                        <div class="list-group-item clearfix">
+                            <small>
+                                {{ p.get_full_name }} ({{ p.username }})&nbsp;&nbsp;&nbsp;<span
+                                    class="text-muted">{{ p.email }}</span>
+                                <span class="pull-right">
+                                    <a href="{% url 'remove-sharing' f.link %}?user={{ p.username }}"
+                                       class="btn btn-xs btn-default">
+                                      &times;
+                                    </a>
+                                </span>
+                            </small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    {% load static %}
+    <script src="{% static 'js/common.js' %}"></script>
+{% endblock %}

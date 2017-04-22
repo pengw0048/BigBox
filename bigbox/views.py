@@ -450,11 +450,11 @@ def do_share(request: WSGIRequest) -> JsonResponse:
     except Exception as e:
         print(str(e))
         return JsonResponse({"error": "missing fields"})
-    share_id = str(uuid.uuid4())[0:8]
+    share_id = str(uuid.uuid4())[0:13]
     si = SharedItem(link=share_id, name=name, is_public=public, items=ids, created_at=timezone.now(), is_folder=False,
                     view_count=0, download_count=0, owner=request.user)
     si.save()
-    link = "http://" + request.get_host() + "/shared?id=" + share_id
+    link = "http://" + request.get_host() + "/shared/" + share_id
     if not public:
         si.readable_users.add(*people)
         si.save()
@@ -470,10 +470,26 @@ def do_share(request: WSGIRequest) -> JsonResponse:
     return JsonResponse({"link": link})
 
 
+@login_required
 def sharing(request: WSGIRequest) -> HttpResponse:
     my_sharing = SharedItem.objects.filter(owner=request.user)
     shared_with_me = SharedItem.objects.filter(readable_users=request.user)
     return render(request, 'sharing.html', {'my_sharing': my_sharing, 'shared_with_me': shared_with_me})
+
+
+@login_required
+def shared(request: WSGIRequest, sid: str) -> HttpResponse:
+    pass
+
+
+@login_required
+def remove_shared(request: WSGIRequest, sid: str) -> HttpResponse:
+    pass
+
+
+@login_required
+def remove_sharing(request: WSGIRequest, sid: str) -> HttpResponse:
+    pass
 
 
 # storage account related operations
