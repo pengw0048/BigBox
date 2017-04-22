@@ -483,13 +483,22 @@ def shared(request: WSGIRequest, sid: str) -> HttpResponse:
 
 
 @login_required
+@transaction.atomic
 def remove_shared(request: WSGIRequest, sid: str) -> HttpResponse:
-    pass
+    entry = get_object_or_404(SharedItem, link=sid, readable_users=request.user)
+    entry.readable_users.remove(request.user)
+    return HttpResponseRedirect(reverse('sharing'))
 
 
 @login_required
 def remove_sharing(request: WSGIRequest, sid: str) -> HttpResponse:
-    pass
+    entry = get_object_or_404(SharedItem, link=sid, owner=request.user)
+    if 'user' in request.GET:
+        user = get_object_or_404(User, username=request.GET['user'])
+        entry.readable_users.remove(user)
+    else:
+        entry.delete()
+    return HttpResponseRedirect(reverse('sharing'))
 
 
 # storage account related operations
