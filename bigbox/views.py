@@ -4,6 +4,7 @@ import json
 import uuid
 from concurrent.futures.thread import ThreadPoolExecutor
 
+import os
 import requests
 from concurrent.futures import as_completed
 from django.conf import settings
@@ -41,6 +42,7 @@ def validate_captcha(request: WSGIRequest) -> bool:
         'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
         'response': recaptcha_response
     }
+    # noinspection PyBroadException
     try:
         result = requests.post(url, data=values).json()
         if not result['success']:
@@ -104,7 +106,8 @@ def register(request: WSGIRequest) -> HttpResponse:
                     user.save()
                     token = default_token_generator.make_token(user)
                     email_body = """
-Welcome to Big Box. Please click the link below to verify your email address and complete the registration of your account:
+Welcome to Big Box!
+Please click the link below to verify your email address and complete the registration of your account:
     http://%s%s
     """ % (request.get_host(), reverse('confirm', args=[user.username, token]))
                     send_mail(subject="Verify your email address", message=email_body,
@@ -264,7 +267,7 @@ def get_download_link(request: WSGIRequest) -> HttpResponse:
     :param request: the wsgi request object
     :return: an HTTP redirection to the download link
     """
-    if not 'id' in request.GET and not 'path' in request.GET:
+    if 'id' not in request.GET and 'path' not in request.GET:
         return HttpResponseBadRequest('missing fields')
     acc = get_object_or_404(StorageAccount, pk=request.GET.get('pk', ''), user=request.user)
     try:
@@ -283,6 +286,7 @@ def get_download_link(request: WSGIRequest) -> HttpResponse:
         else:
             return HttpResponseRedirect(link)
 
+
 @login_required
 def get_big_file(request: WSGIRequest) -> JsonResponse:
     """
@@ -295,10 +299,9 @@ def get_big_file(request: WSGIRequest) -> JsonResponse:
     acc = StorageAccount.objects.filter(user=user)
     path = request.GET.get('path')
     file_name = str(uuid.uuid4())
-    file_folder = "/Users/Judy/Desktop/web project/BigBox/bigbox/static/bigfile/"
-    file_path = "/Users/Judy/Desktop/web project/BigBox/bigbox/static/bigfile/" + file_name
+    file_path = os.path.join(settings.STATIC_ROOT, 'bigfile', file_name)
     print(file_path)
-    record = 1;
+    record = 1
     for account in acc:
         try:
             mod = importlib.import_module('bigbox.' + account.cloud.class_name)
@@ -321,7 +324,7 @@ def get_big_file(request: WSGIRequest) -> JsonResponse:
             # call linux function "cat" to connect to different file
         except Exception as e:
             print(str(e))
-            return HttpResponseBadRequest(str(e))
+            return JsonResponse({'error': str(e)})
     return JsonResponse({'link': file_name})
 
 
@@ -361,7 +364,6 @@ def create_folder(request: WSGIRequest) -> JsonResponse:
         return JsonResponse({'error': 'missing fields'})
     path = normalize_path(request.POST['path'])
     accs = []
-    list = request.POST.getlist('pk')
     for pk in request.POST.getlist('pk'):
         acc = get_object_or_404(StorageAccount, pk=pk, user=request.user)
         accs.append(acc)
@@ -435,6 +437,7 @@ def rename(request: WSGIRequest) -> JsonResponse:
 @login_required
 @transaction.atomic
 def do_share(request: WSGIRequest) -> JsonResponse:
+    people = []
     try:
         ids = json.loads(request.POST["id"])
         name = request.POST["name"]
@@ -444,12 +447,11 @@ def do_share(request: WSGIRequest) -> JsonResponse:
         if not public and recipients == '':
             raise Exception()
         email = request.POST["email"]
-        for id in ids:
-            for key, value in id.items():
+        for id1 in ids:
+            for key, value in id1.items():
                 if not StorageAccount.objects.filter(user=request.user, pk=key).exists():
                     return JsonResponse({"error": "file not yours"})
         if not public:
-            people = []
             for uname in recipients.splitlines():
                 if "@" in uname:
                     person = User.objects.filter(email=uname)
@@ -513,12 +515,8 @@ def shared_list(request: WSGIRequest, sid: str, path: str) -> JsonResponse:
         if not entry.is_public:
             from django.contrib.auth.views import redirect_to_login
             return redirect_to_login(request.get_full_path(), settings.LOGIN_URL, 'next')
-        owner = False
     else:
-        if entry.owner == request.user:
-            owner = True
-        else:
-            owner = False
+        if entry.owner != request.user:
             entry = get_object_or_404(SharedItem, link=sid, readable_users=request.user)
     items = json.loads(entry.items)
     pks = []
@@ -528,6 +526,7 @@ def shared_list(request: WSGIRequest, sid: str, path: str) -> JsonResponse:
     if not path == '/':
         ok = False
         for item in items:
+            tv = ''
             for v in item.values():
                 tv = v
             if full_path.startswith(tv):
@@ -558,25 +557,22 @@ def shared_list(request: WSGIRequest, sid: str, path: str) -> JsonResponse:
 
 
 def shared_down(request: WSGIRequest) -> HttpResponse:
-    if not 'id' in request.GET or not 'sid' in request.GET or not 'hash' in request.GET:
+    if 'id' not in request.GET or 'sid' not in request.GET or 'hash' not in request.GET:
         return HttpResponseBadRequest('missing fields')
-    hash = hashlib.md5((settings.SECRET_KEY + request.GET['id'] + request.GET['sid']).encode('utf-8')).hexdigest()
-    if hash != request.GET['hash'] or not SharedItem.objects.filter(link=request.GET['sid']).exists():
+    right_hash = hashlib.md5((settings.SECRET_KEY + request.GET['id'] + request.GET['sid']).encode('utf-8')).hexdigest()
+    if right_hash != request.GET['hash'] or not SharedItem.objects.filter(link=request.GET['sid']).exists():
         return HttpResponseForbidden()
     acc = get_object_or_404(StorageAccount, pk=request.GET.get('pk', ''))
     try:
         mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
         client = getattr(mod, "get_client")(acc)
-        link = getattr(mod, "get_down_link")(client, request.GET.get('id', None), request.GET.get('path', None))
+        link = getattr(mod, "get_down_link")(client, request.GET['id'], None)
     except Exception as e:
-        print("exception")
         print(str(e))
         return HttpResponseBadRequest(str(e))
     else:
         if not link:
             return HttpResponseNotFound()
-        elif 'astext' in request.GET:
-            return HttpResponse(link)
         else:
             return HttpResponseRedirect(link)
 
