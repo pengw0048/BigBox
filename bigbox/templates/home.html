@@ -25,13 +25,13 @@
             <div class="btn-group-vertical files-left-nav" data-toggle="buttons">
                 <label class="btn btn-sm btn-default active">
                     <i class="color-icon icon-left" style="background-color: yellow"></i>
-                    <input type="checkbox" name="show-in-cloud" value="-1" autocomplete="off" checked>
+                    <input type="checkbox" name="show-in-cloud" value="-1" checked>
                     <small>Big files</small>
                 </label>
                 {% for c in acc %}
                     <label class="btn btn-sm btn-default active">
                         <i class="color-icon icon-left" style="background-color: {{ c.color }}"></i>
-                        <input type="checkbox" name="show-in-cloud" value="{{ c.pk }}" autocomplete="off" checked>
+                        <input type="checkbox" name="show-in-cloud" value="{{ c.pk }}" checked>
                         <small>{{ c.display_name }}</small>
                     </label>
                 {% endfor %}
@@ -69,13 +69,6 @@
                         <th class="text-xs-left" data-sort="int">Modified</th>
                     </tr>
                     </thead>
-                    <tfoot>
-                    <tr>
-                        <td colspan="4">
-
-                        </td>
-                    </tr>
-                    </tfoot>
                     <tbody id="file_list_show">
                     <tr id="file-list-loader">
                         <td colspan="4">
@@ -138,13 +131,14 @@
                     <div class="form-group">
                         <label class="control-label" for="folder-name-input">Folder name</label>
                         <input type="text" class="form-control name-input" id="folder-name-input" minlength="1" maxlength="100" placeholder="" pattern='^[^\\\/?%*:|"<>]{1,100}$'>
-                        <div class="hidden errmsg help-block">The name should not contain: \/?%*:|"<>.</div>
+                        <div class="hidden errmsg help-block">The name should not contain: \/?%*:|"&lt;&gt;.</div>
                     </div>
                     <div class="form-group btn-group" data-toggle="buttons">
                         {% for c in acc %}
                             <label class="btn btn-sm btn-default active">
                                 <i class="color-icon icon-left" style="background-color: {{ c.color }}"></i>
-                                <input type="checkbox" class="create-folder-pk" value="{{ c.pk }}" autocomplete="off" checked><small class="color-icon-text">{{ c.display_name }}</small>
+                                <input type="checkbox" class="create-folder-pk" value="{{ c.pk }}" checked>
+                                <small class="color-icon-text">{{ c.display_name }}</small>
                             </label>
                         {% endfor %}
                     </div>
@@ -170,7 +164,7 @@
                             <label class="control-label" for="rename-input">New name</label>
                             <input type="text" class="form-control name-input" id="rename-input" minlength="1"
                                    maxlength="100" placeholder="" pattern='^[^\\\/?%*:|"<>]{1,100}$'>
-                            <div class="hidden errmsg help-block">The name should not contain: \/?%*:|"<>.</div>
+                            <div class="hidden errmsg help-block">The name should not contain: \/?%*:|"&lt;&gt;.</div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -197,10 +191,10 @@
                         <div><strong>Who can see these files?</strong></div>
                         <div class="form-group btn-group" data-toggle="buttons">
                             <label class="btn btn-sm btn-default">
-                                <input type="radio" name="share-visibility" value="public" autocomplete="off">Anyone
+                                <input type="radio" name="share-visibility" value="public">Anyone
                             </label>
                             <label class="btn btn-sm btn-default">
-                                <input type="radio" name="share-visibility" value="protected" autocomplete="off">Only
+                                <input type="radio" name="share-visibility" value="protected">Only
                                 chosen persons
                             </label>
                         </div>
@@ -209,7 +203,7 @@
                             <input class="ui-widget form-control" id="recipients">
                             <div class="btn-group" data-toggle="buttons">
                                 <label class="btn btn-sm btn-default active">
-                                    <input type="checkbox" id="share-email" autocomplete="off" checked>Send email to
+                                    <input type="checkbox" id="share-email" checked>Send email to
                                     these people
                                 </label>
                             </div>

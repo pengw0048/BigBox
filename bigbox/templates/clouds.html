@@ -15,7 +15,8 @@
             {% for c in accounts %}
                 <div class="acloud" id="acloud-{{ c.pk }}" style="border-left-color: {{ c.color }}">
                     <div class="cloudcard-left">
-                        <img class="cloudcard-logo" src="{% static 'img/' %}{{ c.cloud.icon }}" />
+                        <img class="cloudcard-logo" src="{% static 'img/' %}{{ c.cloud.icon }}"
+                             alt="{{ c.cloud.display_name }}"/>
                     </div>
                     <div class="cloudcard-right">
                         <p class="pull-left"><strong>
@@ -47,7 +48,8 @@
                     <div class="list-group">
                         {% for c in clouds %}
                             <a href="{% url 'cloud-add' c.name %}" class="list-group-item cloud-add-item">
-                                <img src="{% static 'img/' %}{{ c.icon }}" class="cloud-add-icon" />
+                                <img src="{% static 'img/' %}{{ c.icon }}" class="cloud-add-icon"
+                                     alt="{{ c.display_name }}"/>
                             </a>
                         {% endfor %}
                     </div>
