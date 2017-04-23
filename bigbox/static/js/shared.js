@@ -67,7 +67,7 @@ function generateFiles(items) {
             if (self.is_folder) {
                 htmlContent += ('#" class="folder-link">');
             } else {
-                htmlContent += ('/get-down?pk=' + self.acc + '&id=' + encodeURIComponent(self.id) + '" target="_blank">');
+                htmlContent += ('/shared-down?pk=' + self.acc + '&id=' + encodeURIComponent(self.id) + '&hash=' + self.hash + '&sid=' + sid + '" target="_blank">');
             }
             htmlContent += (self.name + '</a>');
         }

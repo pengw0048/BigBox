@@ -1,3 +1,4 @@
+import hashlib
 import importlib
 import json
 import uuid
@@ -483,8 +484,8 @@ def do_share(request: WSGIRequest) -> JsonResponse:
 
 @login_required
 def sharing(request: WSGIRequest) -> HttpResponse:
-    my_sharing = SharedItem.objects.filter(owner=request.user)
-    shared_with_me = SharedItem.objects.filter(readable_users=request.user)
+    my_sharing = SharedItem.objects.filter(owner=request.user).reverse()
+    shared_with_me = SharedItem.objects.filter(readable_users=request.user).reverse()
     return render(request, 'sharing.html', {'my_sharing': my_sharing, 'shared_with_me': shared_with_me})
 
 
@@ -550,7 +551,34 @@ def shared_list(request: WSGIRequest, sid: str, path: str) -> JsonResponse:
             if full in vs:
                 f.append(file)
         files = f
+    for f in files:
+        if not f['is_folder']:
+            f['hash'] = hashlib.md5((settings.SECRET_KEY + f['id'] + sid).encode('utf-8')).hexdigest()
     return JsonResponse(files, safe=False)
+
+
+def shared_down(request: WSGIRequest) -> HttpResponse:
+    if not 'id' in request.GET or not 'sid' in request.GET or not 'hash' in request.GET:
+        return HttpResponseBadRequest('missing fields')
+    hash = hashlib.md5((settings.SECRET_KEY + request.GET['id'] + request.GET['sid']).encode('utf-8')).hexdigest()
+    if hash != request.GET['hash'] or not SharedItem.objects.filter(link=request.GET['sid']).exists():
+        return HttpResponseForbidden()
+    acc = get_object_or_404(StorageAccount, pk=request.GET.get('pk', ''))
+    try:
+        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+        client = getattr(mod, "get_client")(acc)
+        link = getattr(mod, "get_down_link")(client, request.GET.get('id', None), request.GET.get('path', None))
+    except Exception as e:
+        print("exception")
+        print(str(e))
+        return HttpResponseBadRequest(str(e))
+    else:
+        if not link:
+            return HttpResponseNotFound()
+        elif 'astext' in request.GET:
+            return HttpResponse(link)
+        else:
+            return HttpResponseRedirect(link)
 
 
 @login_required
