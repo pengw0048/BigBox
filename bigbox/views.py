@@ -16,6 +16,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.db.models import Q
 from django.http import *
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -321,7 +322,7 @@ def get_big_file(request: WSGIRequest) -> JsonResponse:
 
             with open(file_path, "w") as target:
                 target.write(r.content)
-            # call linux function "cat" to connect to different file
+                # call linux function "cat" to connect to different file
         except Exception as e:
             print(str(e))
             return JsonResponse({'error': str(e)})
@@ -452,14 +453,16 @@ def do_share(request: WSGIRequest) -> JsonResponse:
                 if not StorageAccount.objects.filter(user=request.user, pk=key).exists():
                     return JsonResponse({"error": "file not yours"})
         if not public:
-            for uname in recipients.splitlines():
-                if "@" in uname:
-                    person = User.objects.filter(email=uname)
-                else:
-                    person = User.objects.filter(username=uname)
-                if not person.exists():
-                    return JsonResponse({"error": uname + " not exists"})
-                people.append(person.first())
+            for uname in recipients.split(','):
+                uname = uname.strip()
+                if uname != '':
+                    if "@" in uname:
+                        person = User.objects.filter(email=uname)
+                    else:
+                        person = User.objects.filter(username=uname)
+                    if not person.exists():
+                        return JsonResponse({"error": uname + " not exists"})
+                    people.append(person.first())
     except Exception as e:
         print(str(e))
         return JsonResponse({"error": "missing fields"})
@@ -599,6 +602,18 @@ def remove_sharing(request: WSGIRequest, sid: str) -> HttpResponse:
     else:
         entry.delete()
     return HttpResponseRedirect(reverse('sharing'))
+
+
+def autocomplete_user(request: WSGIRequest) -> JsonResponse:
+    if 'term' not in request.GET:
+        return JsonResponse([], safe=False)
+    term = request.GET['term']
+    results = User.objects.filter(Q(username__contains=term) | Q(email__contains=term)
+                                  | Q(first_name__contains=term) | Q(last_name__contains=term))[:10]
+    ret = []
+    for p in results:
+        ret.append({'label': p.get_full_name() + ' (' + p.username + ') ' + p.email, 'value': p.username})
+    return JsonResponse(ret, safe=False)
 
 
 # storage account related operations

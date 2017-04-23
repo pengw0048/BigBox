@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^share/?$', views.do_share, name='share'),
     url(r'^sharing/?$', views.sharing, name='sharing'),
     url(r'^shared-down/?$', views.shared_down, name='shared-down'),
+    url(r'^autocomplete-user/?$', views.autocomplete_user, name='autocomplete-user'),
     url(r'^shared/(?P<sid>[\w-]+)$', views.shared, name='shared'),
     url(r'^shared-list/(?P<sid>[\w-]+)(?P<path>/.*)$', views.shared_list, name='shared-list'),
     url(r'^remove-shared/(?P<sid>[\w-]+)$', views.remove_shared, name='remove-shared'),

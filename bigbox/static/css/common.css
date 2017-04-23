@@ -149,3 +149,13 @@ tr:not(:first-child):hover {
 ul {
     margin-bottom: 0;
 }
+
+.ui-autocomplete-loading {
+    background: white url("../img/ui-anim_basic_16x16.gif") right center no-repeat;
+}
+
+.ui-autocomplete {
+    position: absolute;
+    cursor: default;
+    z-index: 1100 !important
+}
