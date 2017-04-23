@@ -13,7 +13,8 @@
                 <ul class="nav navbar-nav">
                     <li {% if active_home %}class="active"{% endif %}><a href="{% url 'list' '/' %}">My Box</a></li>
                     <li {% if active_clouds %}class="active"{% endif %}><a href="{% url 'clouds' %}">Clouds</a></li>
-                    <li {% if active_sharing %}class="active"{% endif %}><a href="{% url 'sharing' %}">Sharing</a></li>
+                    <li {% if active_sharing %}class="active"{% endif %} id="navbar-sharing"><a
+                            href="{% url 'sharing' %}">Sharing</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><span class="navbar-text">{{ user.get_full_name }} ({{ user.username }})</span></li>

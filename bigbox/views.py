@@ -139,7 +139,7 @@ def confirm(request: WSGIRequest, username: str, token: str) -> HttpResponse:
     user.save()
     auth_login(request, user)
     messages.success(request, 'Your account has been created. Welcome to Big Box!')
-    return HttpResponseRedirect(reverse('list', args=['/']))
+    return HttpResponseRedirect(reverse('list', args=['/'], kwargs={'tour': 1}))
 
 
 # file list related operations
@@ -183,7 +183,9 @@ def file_list_view(request: WSGIRequest, path: str) -> HttpResponse:
         cloudclass = cloudclass + '"' + str(sub_acc.cloud.class_name) + '"' + ','
     num = num[:-1] + ']'
     cloudclass = cloudclass[:-1] + ']'
-    return render(request, 'home.html', {'user': user, 'acc': acc, 'path': path, 'num': num, 'cloudclass': cloudclass})
+    return render(request, 'home.html',
+                  {'user': user, 'acc': acc, 'path': path, 'num': num, 'cloudclass': cloudclass,
+                   'tour': 'tour' in request.GET})
 
 
 def get_file_list(c: StorageAccount, path: str) -> List[dict]:
@@ -640,7 +642,8 @@ def storage_accounts(request: WSGIRequest) -> HttpResponse:
             acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
                                     else 0)
             account_info.append(acc)
-    return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds})
+    return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds,
+                                           'tour': 'tour' in request.GET})
 
 
 @login_required

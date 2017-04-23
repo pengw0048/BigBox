@@ -12,7 +12,8 @@
         </div>
         <div class="col-xs-2">
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Upload</button>
+                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" id="upload-left-button">Upload
+                </button>
                 <ul class="dropdown-menu">
                     <li><a id="upload-to-all" tabindex="-1" href="#">Big files</a></li>
                     <li class="divider"></li>
@@ -22,7 +23,7 @@
                 </ul>
                 <button class="btn btn-default" id="new-folder-button" data-toggle="modal" data-target="#new-folder-dialog"><i class="glyphicon glyphicon-folder-open"></i> New</button>
             </div>
-            <div class="btn-group-vertical files-left-nav" data-toggle="buttons">
+            <div class="btn-group-vertical files-left-nav" data-toggle="buttons" id="files-left-nav">
                 <label class="btn btn-sm btn-default active">
                     <i class="color-icon icon-left" style="background-color: yellow"></i>
                     <input type="checkbox" name="show-in-cloud" value="-1" checked>
@@ -239,4 +240,9 @@
     <script src="{% static 'js/common.js' %}"></script>
     <script src="{% static 'js/home.js' %}"></script>
     <script src="{% static 'js/clipboard.min.js' %}"></script>
+    {% if tour %}
+        <link href="{% static 'css/bootstrap-tour.min.css' %}" rel="stylesheet">
+        <script src="{% static 'js/bootstrap-tour.min.js' %}"></script>
+        <script src="{% static 'js/tour.js' %}"></script>
+    {% endif %}
 {% endblock %}

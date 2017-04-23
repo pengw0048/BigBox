@@ -9,7 +9,9 @@
             <div class="page-header">
                 <h2>
                     <span>My cloud accounts</span>
-                    <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#choose-cloud"><span class="glyphicon glyphicon-plus"></span> Link a cloud</button>
+                    <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#choose-cloud"
+                            id="link-cloud-button"><span class="glyphicon glyphicon-plus"></span> Link a cloud
+                    </button>
                 </h2>
             </div>
             {% for c in accounts %}
@@ -69,4 +71,9 @@
     <script src="{% static 'js/bootstrap-colorpicker.min.js' %}"></script>
     <script src="{% static 'js/common.js' %}"></script>
     <script src="{% static 'js/cloud-page.js' %}"></script>
+    {% if tour %}
+        <link href="{% static 'css/bootstrap-tour.min.css' %}" rel="stylesheet">
+        <script src="{% static 'js/bootstrap-tour.min.js' %}"></script>
+        <script src="{% static 'js/tour.js' %}"></script>
+    {% endif %}
 {% endblock %}
