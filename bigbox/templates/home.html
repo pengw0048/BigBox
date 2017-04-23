@@ -241,6 +241,7 @@
     <script src="{% static 'js/home.js' %}"></script>
     <script src="{% static 'js/clipboard.min.js' %}"></script>
     {% if tour %}
+        <script>localStorage.clear();</script>
         <link href="{% static 'css/bootstrap-tour.min.css' %}" rel="stylesheet">
         <script src="{% static 'js/bootstrap-tour.min.js' %}"></script>
         <script src="{% static 'js/tour.js' %}"></script>

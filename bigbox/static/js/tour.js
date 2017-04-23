@@ -24,6 +24,13 @@ var tour = new Tour({
             content: "Just like what you'd want to do on any other clouds."
         },
         {
+            element: "#nav-pages",
+            title: "Check out other pages",
+            placement: "bottom",
+            content: "Manage your cloud accounts in Clouds, and see your shared files in Sharing. We'll now take you to Clouds page to start with.",
+            backdrop: false
+        },
+        {
             path: "/clouds?tour=1",
             element: "#link-cloud-button",
             title: "Manage cloud accounts",
