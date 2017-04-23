@@ -175,7 +175,7 @@ def file_list_view(request: WSGIRequest, path: str) -> HttpResponse:
     cloudclass = '['
     for sub_acc in acc:
         num = num + str(sub_acc.pk) + ','
-        cloudclass = cloudclass + '"' + str(sub_acc.cloud.class_name)  + '"' + ','
+        cloudclass = cloudclass + '"' + str(sub_acc.cloud.class_name) + '"' + ','
     num = num[:-1] + ']'
     cloudclass = cloudclass[:-1] + ']'
     return render(request, 'home.html', {'user': user, 'acc': acc, 'path': path, 'num': num, 'cloudclass': cloudclass})
@@ -202,6 +202,31 @@ def get_file_list(c: StorageAccount, path: str) -> List[dict]:
         return fs
 
 
+def do_get_files(path: str, acc: List[StorageAccount]) -> list:
+    path = normalize_path(path)
+    files = []
+    folders = {}
+    with ThreadPoolExecutor() as executor:
+        future_to_files = {executor.submit(get_file_list, c, path): c for c in acc}
+        for future in as_completed(future_to_files):
+            c = future_to_files[future]
+            fs = future.result()
+            for f in fs:
+                f['colors'] = [c.color]
+                if f['is_folder']:
+                    if f['name'] in folders:
+                        folders[f['name']]['id'].append({c.pk: f['id']})
+                        folders[f['name']]['colors'].append(c.color)
+                    else:
+                        f['id'] = [{c.pk: f['id']}]
+                        folders[f['name']] = f
+                else:
+                    f['acc'] = c.pk
+                    files.append(f)
+    files.extend(list(folders.values()))
+    return files
+
+
 @login_required
 def get_files(request: WSGIRequest, path: str) -> JsonResponse:
     """
@@ -220,31 +245,12 @@ def get_files(request: WSGIRequest, path: str) -> JsonResponse:
             acc.extend(StorageAccount.objects.filter(pk=pk, user=user))
     else:
         acc = StorageAccount.objects.filter(user=user)
-    files = []
-    folders = {}
     try:
-        with ThreadPoolExecutor() as executor:
-            future_to_files = {executor.submit(get_file_list, c, path): c for c in acc}
-            for future in as_completed(future_to_files):
-                c = future_to_files[future]
-                fs = future.result()
-                for f in fs:
-                    f['colors'] = [c.color]
-                    if f['is_folder']:
-                        if f['name'] in folders:
-                            folders[f['name']]['id'].append({c.pk: f['id']})
-                            folders[f['name']]['colors'].append(c.color)
-                        else:
-                            f['id'] = [{c.pk: f['id']}]
-                            folders[f['name']] = f
-                    else:
-                        f['acc'] = c.pk
-                        files.append(f)
+        files = do_get_files(path, acc)
     except Exception as e:
         print(str(e))
         return JsonResponse({'error': str(e)})
     else:
-        files.extend(list(folders.values()))
         return JsonResponse(files, safe=False)
 
 
@@ -455,8 +461,8 @@ def do_share(request: WSGIRequest) -> JsonResponse:
         print(str(e))
         return JsonResponse({"error": "missing fields"})
     share_id = str(uuid.uuid4())[0:13]
-    si = SharedItem(link=share_id, name=name, is_public=public, items=ids, created_at=timezone.now(), is_folder=False,
-                    view_count=0, download_count=0, owner=request.user, basedir=basedir)
+    si = SharedItem(link=share_id, name=name, is_public=public, items=request.POST["id"], created_at=timezone.now(),
+                    is_folder=False, view_count=0, download_count=0, owner=request.user, basedir=basedir)
     si.save()
     link = "http://" + request.get_host() + "/shared/" + share_id
     if not public:
@@ -495,7 +501,56 @@ def shared(request: WSGIRequest, sid: str) -> HttpResponse:
         else:
             owner = False
             entry = get_object_or_404(SharedItem, link=sid, readable_users=request.user)
-    return render(request, 'shared.html', {'f': entry, 'owner': owner})
+    return render(request, 'shared.html', {'f': entry, 'owner': owner, 'sid': sid})
+
+
+def shared_list(request: WSGIRequest, sid: str, path: str) -> JsonResponse:
+    entry = get_object_or_404(SharedItem, link=sid)
+    if not path.startswith('/'):
+        return JsonResponse({'error': 'wrong path'})
+    if not request.user.is_authenticated:
+        if not entry.is_public:
+            from django.contrib.auth.views import redirect_to_login
+            return redirect_to_login(request.get_full_path(), settings.LOGIN_URL, 'next')
+        owner = False
+    else:
+        if entry.owner == request.user:
+            owner = True
+        else:
+            owner = False
+            entry = get_object_or_404(SharedItem, link=sid, readable_users=request.user)
+    items = json.loads(entry.items)
+    pks = []
+    for item in items:
+        pks.extend(item.keys())
+    full_path = entry.basedir.rstrip('/') + path
+    if not path == '/':
+        ok = False
+        for item in items:
+            for v in item.values():
+                tv = v
+            if full_path.startswith(tv):
+                ok = True
+        if not ok:
+            return JsonResponse({'error': 'wrong path'})
+    acc = None
+    for pk in pks:
+        if acc:
+            acc = acc | StorageAccount.objects.filter(pk=pk)
+        else:
+            acc = StorageAccount.objects.filter(pk=pk)
+    files = do_get_files(full_path, acc)
+    if path == '/':
+        vs = []
+        for item in items:
+            vs.extend(item.values())
+        f = []
+        for file in files:
+            full = entry.basedir + file['name']
+            if full in vs:
+                f.append(file)
+        files = f
+    return JsonResponse(files, safe=False)
 
 
 @login_required

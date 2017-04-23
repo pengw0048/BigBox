@@ -7,27 +7,27 @@
     {% else %}
         {% include 'navbar-out.html' %}
     {% endif %}
-    <div class="mainframe">
+    <div class="mainframe-large">
         {% include 'popupmsg.html' %}
-        <div class="page-header">
-            <h2 style="display: inline-block">
-                <span>{{ f.name }}</span>
-            </h2>
-            <span>&nbsp;&nbsp;
-                {% if f.is_public %}
-                    <small class="label label-success">public</small>{% else %}
-                    <small class="label label-info">shared</small>{% endif %}
-            </span>&nbsp;&nbsp;
-            {% if owner %}
-                <a href="{% url 'sharing' %}">Manage</a>
-            {% else %}
-                Owner: {{ f.owner.get_full_name }}
-                ({{ f.owner.username }})&nbsp;&nbsp;&nbsp;<span
-                    class="text-muted">{{ f.owner.email }}</span>
-            {% endif %}
-            <span class="clearfix"></span>
-        </div>
         <div class="col-xs-12">
+            <div class="page-header">
+                <h2 style="display: inline-block">
+                    <span>{{ f.name }}</span>
+                </h2>
+                <span>&nbsp;&nbsp;
+                    {% if f.is_public %}
+                        <small class="label label-success">public</small>{% else %}
+                        <small class="label label-info">shared</small>{% endif %}
+                </span>&nbsp;&nbsp;
+                {% if owner %}
+                    <a href="{% url 'sharing' %}">Manage</a>
+                {% else %}
+                    Owner: {{ f.owner.get_full_name }}
+                    ({{ f.owner.username }})&nbsp;&nbsp;&nbsp;<span
+                        class="text-muted">{{ f.owner.email }}</span>
+                {% endif %}
+                <span class="clearfix"></span>
+            </div>
             {% include 'popupmsg.html' %}
             <ol class="breadcrumb" dir="ltr" id="dir_list_show">
                 <li class="breadcrumb-item"><a href="#"><i class="fa fa-fw fa-home fa-lg folder-link-full"
@@ -74,10 +74,12 @@
     </div>
 {% endblock %}
 {% block scripts %}
-    <script>var path = "/";</script>
+    <script>var path = "/";
+    var sid = "{{ sid }}";</script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/listr.pack.css' %}">
     <script src="{% static 'js/listr.pack.js' %}"></script>
     <script src="{% static 'js/moment-with-locales.js' %}"></script>
     <script src="{% static 'js/common.js' %}"></script>
+    <script src="{% static 'js/shared.js' %}"></script>
 {% endblock %}

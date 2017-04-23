@@ -227,7 +227,7 @@ $(document).ready(function () {
             $($(self).data('id')).each(function (j, me) {
                 var k = Object.keys(me)[0];
                 var d = {};
-                d[k] = $(self).parents('tr').find('a').text();
+                d[k] = path + $(self).parents('tr').find('a').text();
                 arr.push(d);
             })
         });
