@@ -39,24 +39,28 @@
                             <small class="label label-info">shared</small>{% endif %}</p>
                     <div class="pull-right text-muted">{{ f.created_at | naturaltime }}</div>
                     <div class="clearfix"></div>
-                    <p class="pull-left">Views: {{ f.view_count }} Downloads: {{ f.download_count }}</p>
+                    <p class="pull-left">Views: {{ f.view_count }}</p>
                     <div class="pull-right"><a href="{% url 'remove-sharing' f.link %}">Stop sharing</a></div>
                     <div class="clearfix"></div>
 
-                    {% for p in f.readable_users.all %}
-                        <div class="list-group-item clearfix">
-                            <small>
-                                {{ p.get_full_name }} ({{ p.username }})&nbsp;&nbsp;&nbsp;<span
-                                    class="text-muted">{{ p.email }}</span>
-                                <span class="pull-right">
-                                    <a href="{% url 'remove-sharing' f.link %}?user={{ p.username }}"
-                                       class="btn btn-xs btn-default">
-                                      &times;
-                                    </a>
-                                </span>
-                            </small>
-                        </div>
-                    {% endfor %}
+                    {% if f.readable_users.all %}
+                        <ul>
+                            {% for p in f.readable_users.all %}
+                                <li class="list-group-item clearfix">
+                                    <small>
+                                        {{ p.get_full_name }} ({{ p.username }})&nbsp;&nbsp;&nbsp;<span
+                                            class="text-muted">{{ p.email }}</span>
+                                        <span class="pull-right">
+                                        <a href="{% url 'remove-sharing' f.link %}?user={{ p.username }}"
+                                           class="btn btn-xs btn-default">
+                                          &times;
+                                        </a>
+                                    </span>
+                                    </small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </div>
             {% empty %}
                 Share some files with your friends!
