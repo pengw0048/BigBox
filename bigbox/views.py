@@ -594,6 +594,8 @@ def remove_sharing(request: WSGIRequest, sid: str) -> HttpResponse:
     if 'user' in request.GET:
         user = get_object_or_404(User, username=request.GET['user'])
         entry.readable_users.remove(user)
+        if entry.readable_users.count() == 0:
+            entry.delete()
     else:
         entry.delete()
     return HttpResponseRedirect(reverse('sharing'))
