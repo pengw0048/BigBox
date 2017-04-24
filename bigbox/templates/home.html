@@ -72,9 +72,11 @@
                     </thead>
                     <tbody id="file_list_show">
                     <tr id="file-list-loader">
+                        {% if acc %}
                         <td colspan="4">
                             <div class="loader"></div>
                         </td>
+                        {% endif %}
                     </tr>
                     </tbody>
                 </table>

@@ -144,7 +144,7 @@ def confirm(request: WSGIRequest, username: str, token: str) -> HttpResponse:
     user.is_active = True
     user.save()
     auth_login(request, user)
-    messages.success(request, 'Your account has been created. Welcome to Big Box!')
+    # messages.success(request, 'Your account has been created. Welcome to Big Box!')
     return HttpResponseRedirect(reverse('list', args=['/']) + '?tour=1')
 
 
