@@ -79,6 +79,11 @@
                     </tbody>
                 </table>
             </div>
+            {% if not acc %}
+                <div style="text-align: center;">You haven't linked a cloud account to BigBox yet.<br>Click <a
+                        href="{% url 'clouds' %}">here</a> to add one!
+                </div>
+            {% endif %}
         </div>
     </div>
     <div class="modal fade" id="upload-dialog" tabindex="-1" data-keyboard="false" data-backdrop="static">
