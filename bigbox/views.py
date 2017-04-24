@@ -106,13 +106,19 @@ def register(request: WSGIRequest) -> HttpResponse:
                                                     last_name=form.cleaned_data['last_name'], is_active=False)
                     user.save()
                     token = default_token_generator.make_token(user)
+                    link = "http://" + request.get_host() + reverse('confirm', args=[user.username, token])
                     email_body = """
 Welcome to Big Box!
-Please click the link below to verify your email address and complete the registration of your account:
-    http://%s%s
-    """ % (request.get_host(), reverse('confirm', args=[user.username, token]))
-                    send_mail(subject="Verify your email address", message=email_body,
-                              from_email=settings.EMAIL_ADDRESS, recipient_list=[user.email])
+Please follow the link below to verify your email address and complete the registration of your account:
+    %s
+    """ % link
+                    html_email_body = """
+Welcome to Big Box!<br>
+Please click the link below to verify your email address and complete the registration of your account:<br>
+    <a href="%s">%s</a>
+    """ % (link, link)
+                    send_mail("Verify your email address", email_body,
+                              settings.EMAIL_ADDRESS, [user.email], html_message=html_email_body)
                     messages.info(request, 'Please check your inbox and activate your account')
                     return HttpResponseRedirect(reverse('login'))
                 else:
@@ -139,7 +145,7 @@ def confirm(request: WSGIRequest, username: str, token: str) -> HttpResponse:
     user.save()
     auth_login(request, user)
     messages.success(request, 'Your account has been created. Welcome to Big Box!')
-    return HttpResponseRedirect(reverse('list', args=['/'], kwargs={'tour': 1}))
+    return HttpResponseRedirect(reverse('list', args=['/']) + '?tour=1')
 
 
 # file list related operations
@@ -482,11 +488,15 @@ def do_share(request: WSGIRequest) -> JsonResponse:
             for person in people:
                 emails.append(person.email)
             email_body = """
-%s shared %s to you on BigBox. Please go to the following link and log in to see.
+%s shared %s to you on BigBox. Please go to the following link and log in to see.<br>
     %s
 """ % (request.user.username, name, link)
+            html_email_body = """
+%s shared %s to you on BigBox. Please go to the following link and log in to see.<br>
+    <a href="%s">%s</a>
+""" % (request.user.username, name, link, link)
             send_mail(subject=request.user.username + " shares files with you on BigBox", message=email_body,
-                      from_email=settings.EMAIL_ADDRESS, recipient_list=emails)
+                      from_email=settings.EMAIL_ADDRESS, recipient_list=emails, html_message=html_email_body)
     return JsonResponse({"link": link})
 
 
