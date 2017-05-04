@@ -3,6 +3,7 @@ import importlib
 import json
 import uuid
 from concurrent.futures.thread import ThreadPoolExecutor
+from typing import *
 
 import os
 import requests
@@ -20,7 +21,6 @@ from django.db.models import Q
 from django.http import *
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from typing import *
 
 from .forms import *
 from .models import *
@@ -53,6 +53,23 @@ def validate_captcha(request: WSGIRequest) -> bool:
         return False
 
 
+def send_verify_email(request: WSGIRequest, user: User) -> None:
+    token = default_token_generator.make_token(user)
+    link = "http://" + request.get_host() + reverse('confirm', args=[user.username, token])
+    email_body = """
+Welcome to Big Box!
+Please follow the link below to verify your email address and complete the registration of your account:
+    %s
+    """ % link
+    html_email_body = """
+Welcome to Big Box!<br>
+Please click the link below to verify your email address and complete the registration of your account:<br>
+    <a href="%s">%s</a>
+    """ % (link, link)
+    send_mail("Verify your email address", email_body,
+              settings.EMAIL_ADDRESS, [user.email], html_message=html_email_body)
+
+
 def login(request: WSGIRequest) -> HttpResponse:
     """
     Renders the login view or log the user in.
@@ -68,7 +85,13 @@ def login(request: WSGIRequest) -> HttpResponse:
             if validate_captcha(request):
                 user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
                 if user is None:
-                    messages.error(request, 'Please check your username and password.')
+                    qs = User.objects.filter(username=form.cleaned_data['username'])
+                    if qs.exists():
+                        user = qs.first()
+                        send_verify_email(request, user)
+                        messages.warning(request, 'Please check your inbox (or spam?) for the activation email.')
+                    else:
+                        messages.error(request, 'Please check your username and password.')
                 else:
                     auth_login(request, user)
                     if request.GET.get('next', None):
@@ -105,20 +128,7 @@ def register(request: WSGIRequest) -> HttpResponse:
                                                     first_name=form.cleaned_data['first_name'],
                                                     last_name=form.cleaned_data['last_name'], is_active=False)
                     user.save()
-                    token = default_token_generator.make_token(user)
-                    link = "http://" + request.get_host() + reverse('confirm', args=[user.username, token])
-                    email_body = """
-Welcome to Big Box!
-Please follow the link below to verify your email address and complete the registration of your account:
-    %s
-    """ % link
-                    html_email_body = """
-Welcome to Big Box!<br>
-Please click the link below to verify your email address and complete the registration of your account:<br>
-    <a href="%s">%s</a>
-    """ % (link, link)
-                    send_mail("Verify your email address", email_body,
-                              settings.EMAIL_ADDRESS, [user.email], html_message=html_email_body)
+                    send_verify_email(request, user)
                     messages.info(request, 'Please check your inbox and activate your account')
                     return HttpResponseRedirect(reverse('login'))
                 else:
@@ -192,6 +202,35 @@ def file_list_view(request: WSGIRequest, path: str) -> HttpResponse:
     return render(request, 'home.html',
                   {'user': user, 'acc': acc, 'path': path, 'num': num, 'cloudclass': cloudclass,
                    'tour': 'tour' in request.GET})
+
+@login_required
+def get_acc_info(request: WSGIRequest) -> JsonResponse:
+    """
+    return list of account information for big file uploading
+     including account extra storage size
+    :return: a list of account information
+    """
+    user = request.user;
+    acc = StorageAccount.objects.filter(user=user)
+    acc_list = []
+    for sub_acc in acc:
+        acc_dict = {}
+        acc_dict["name"] = sub_acc.display_name
+        acc_dict["color"] = sub_acc.color
+        # get the extra size of this account
+        try:
+            mod = importlib.import_module('bigbox.' + sub_acc.cloud.class_name)
+            client = getattr(mod, "get_client")(sub_acc)
+            space = getattr(mod, "get_space")(client)
+            if(space['total']):
+                acc_dict["space"] = str((int)(space['total']) - (int)(space['used']))
+            else:
+                acc_dict["space"] = -1
+        except Exception as e:
+            print(str(e))
+            return JsonResponse({"error": str(e)})
+        acc_list.append(acc_dict)
+    return JsonResponse(acc_list, safe=False)
 
 
 def get_file_list(c: StorageAccount, path: str) -> List[dict]:
@@ -307,10 +346,9 @@ def get_big_file(request: WSGIRequest) -> JsonResponse:
     user = request.user
     acc = StorageAccount.objects.filter(user=user)
     path = request.GET.get('path')
-    file_name = str(uuid.uuid4())
-    file_path = os.path.join(settings.STATIC_ROOT, 'bigfile', file_name)
-    print(file_path)
-    record = 1
+    file_folder_name = str(uuid.uuid4())
+    file_dir = os.path.join(settings.STATIC_ROOT, 'bigfile', file_folder_name)
+    os.mkdir(file_dir)
     for account in acc:
         try:
             mod = importlib.import_module('bigbox.' + account.cloud.class_name)
@@ -319,22 +357,12 @@ def get_big_file(request: WSGIRequest) -> JsonResponse:
             # send request to different accounts
             r = requests.get(link)
 
-            print(r)
-
-            d = r.decode('utf8')
-            print(type(d), d)
-
-            with open(file_path + str(record), "w") as target:
-                target.write(r.content)
-                record += 1
-
-            with open(file_path, "w") as target:
+            with open(file_dir + '/' + path[13:], "ab") as target:
                 target.write(r.content)
                 # call linux function "cat" to connect to different file
         except Exception as e:
-            print(str(e))
             return JsonResponse({'error': str(e)})
-    return JsonResponse({'link': file_name})
+    return JsonResponse({'link': file_folder_name + '/' + path[13:]})
 
 
 @login_required
@@ -455,7 +483,6 @@ def do_share(request: WSGIRequest) -> JsonResponse:
         basedir = request.POST["basedir"]
         if not public and recipients == '':
             raise Exception()
-        email = request.POST["email"]
         for id1 in ids:
             for key, value in id1.items():
                 if not StorageAccount.objects.filter(user=request.user, pk=key).exists():
@@ -483,7 +510,7 @@ def do_share(request: WSGIRequest) -> JsonResponse:
     if not public:
         si.readable_users.add(*people)
         si.save()
-        if email == 'true':
+        if True:
             emails = []
             for person in people:
                 emails.append(person.email)
@@ -640,20 +667,8 @@ def storage_accounts(request: WSGIRequest) -> HttpResponse:
     """
     user = request.user
     clouds = CloudInterface.objects.all()
-    account_info = []
-    for acc in StorageAccount.objects.filter(user=user):
-        try:
-            mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
-            client = getattr(mod, "get_client")(acc)
-            acc.space = getattr(mod, "get_space")(client)
-        except Exception as e:
-            print(str(e))
-        else:
-            acc.space['percent'] = (float(acc.space['used']) * 100.0 / float(acc.space['total']) if acc.space['total']
-                                    else 0)
-            account_info.append(acc)
-    return render(request, 'clouds.html', {'accounts': account_info, 'clouds': clouds,
-                                           'tour': 'tour' in request.GET})
+    acc = StorageAccount.objects.filter(user=user)
+    return render(request, 'clouds.html', {'accounts': acc, 'clouds': clouds, 'tour': 'tour' in request.GET})
 
 
 @login_required
@@ -711,3 +726,26 @@ def color_storage_account(request: WSGIRequest) -> JsonResponse:
     acc.color = request.POST['value']
     acc.save()
     return JsonResponse({'status': 'ok'})
+
+
+@transaction.atomic
+@login_required
+def remove_storage_account(request: WSGIRequest) -> HttpResponse:
+    acc = get_object_or_404(StorageAccount, pk=request.GET.get('pk', ''), user=request.user)
+    acc.delete()
+    return HttpResponseRedirect(reverse('clouds'))
+
+
+@login_required
+def get_space(request: WSGIRequest) -> JsonResponse:
+    user = request.user
+    acc = get_object_or_404(StorageAccount, user=user, pk=request.GET.get('pk', ''))
+    try:
+        mod = importlib.import_module('bigbox.' + acc.cloud.class_name)
+        client = getattr(mod, "get_client")(acc)
+        space = getattr(mod, "get_space")(client)
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({"error": str(e)})
+    else:
+        return JsonResponse({'used': int(space['used']), 'total': int(space['total']) if space['total'] else -1})

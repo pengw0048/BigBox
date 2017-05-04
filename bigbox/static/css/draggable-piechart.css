@@ -1,0 +1,31 @@
+
+* {
+    font-family: Arial, sans-serif;
+}
+
+#piechart-controls {
+    text-align: center;
+
+}
+
+#piechart-instructions {
+    display: inline-block;
+    width: 600px;
+}
+
+.adjust-button {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    line-height: 20px;
+    text-align: center;
+    display: inline-block;
+    border: 1px solid grey;
+    border-radius: 5px;
+    margin: 1px;
+}
+
+var {
+    width: 40px;
+    display: inline-block;
+}

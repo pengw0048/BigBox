@@ -15,7 +15,10 @@
                 <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" id="upload-left-button">Upload
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a id="upload-to-all" tabindex="-1" href="#">Big files</a></li>
+                    <li><a id="upload-to-all" tabindex="-1" href="#">Big files <i
+                            class="glyphicon glyphicon-info-sign pull-right" data-toggle="tooltip"
+                            title="(Experimental.) File will be split and each piece is stored on different clouds. You can get one complete file back through BigBox later."></i></a>
+                    </li>
                     <li class="divider"></li>
                     {% for c in acc %}
                         <li><a class="upload-to-cloud" tabindex="-1" href="#" data-pk="{{ c.pk }}" data-classname="{{ c.cloud.class_name }}" data-path="{{ c.did }}">{{ c.display_name }}</a></li>
@@ -88,11 +91,25 @@
             {% endif %}
         </div>
     </div>
+
+
+    <div class="modal fade" id="big-prepare-dialog" tabindex="-1" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="loader" id="big-prepare">
+                    </div>
+                    <h4 style="text-align: center; margin-top:30px">Big File Download in Preparation...</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="upload-dialog" tabindex="-1" data-keyboard="false" data-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal" id="up-close"><span>&times;</span></button>
                     <h4>Upload to <span id="upload-to"></span></h4>
                 </div>
                 <div class="modal-body">
@@ -116,17 +133,32 @@
                             </div>
                             <div class="col-xs-5 fileupload-progress" id="master-progress-container">
                                 <div class="progress progress-striped active">
-                                    <div id="master-progress" class="progress-bar progress-bar-info" style="width:0;"><span></span></div>
+                                    <div id="master-progress" class="progress-bar progress-bar-info" style="width:0;">
+                                        <span></span></div>
                                 </div>
                                 <div class="progress-extended">&nbsp;</div>
                             </div>
                         </div>
+
+                        <!--- add decision for whether it is the big file, if , show up the piechart to control percentage --->
+
+                        <div id="piechart-controls" style="display: none"> 
+                            <canvas id="piechart" width="400" height="400">Your browser is too old!</canvas>
+                             
+                            <br> 
+                            <table id="proportions-table" style="border: 1px solid grey;"></table>
+                             
+                            <br>  
+                        </div>
                     </form>
-                    <table class="table table-striped"><tbody id="file-list"></tbody></table>
+                    <table class="table table-striped">
+                        <tbody id="file-list"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="new-folder-dialog" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -150,6 +182,8 @@
                             </label>
                         {% endfor %}
                     </div>
+                    <i class="glyphicon glyphicon-info-sign pull-right" data-toggle="tooltip"
+                       title="New folder will be created on all clouds selected here"></i>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="create-folder-button"><span class="glyphicon glyphicon-refresh spinning hidden"></span> Create</button>
@@ -192,11 +226,18 @@
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                     <h4 class="modal-title">Share <span class="editable-text editable editable-click" id="share-title"
                                                         data-type="text" data-pk="1" data-title="Enter display name"
-                                                        data-unsavedclass="" title=""> </span></h4>
+                                                        data-unsavedclass="" title=""> </span>
+                        <i class="glyphicon glyphicon-info-sign small" data-toggle="tooltip"
+                           title="Click on the name to change it"></i>
+                    </h4>
                 </div>
                 <form id="share-form">
                     <div class="modal-body" id="share-tab-1">
-                        <div><strong>Who can see these files?</strong></div>
+                        <div>
+                            <strong>Who can see these files?</strong>&nbsp;
+                            <i class="glyphicon glyphicon-info-sign" data-toggle="tooltip"
+                               title="Anyone: whoever has the link have access. &#13;Only chosen persons: they have to log in with selected user id, and will see on their Sharing pages."></i>
+                        </div>
                         <div class="form-group btn-group" data-toggle="buttons">
                             <label class="btn btn-sm btn-default">
                                 <input type="radio" name="share-visibility" value="public">Anyone
@@ -209,12 +250,6 @@
                         <div class="form-group" id="recipients-group">
                             <label for="recipients">Recipients (Email or username, comma separated):</label>
                             <input class="ui-widget form-control" id="recipients">
-                            <div class="btn-group" data-toggle="buttons">
-                                <label class="btn btn-sm btn-default active">
-                                    <input type="checkbox" id="share-email" checked>Send email to
-                                    these people
-                                </label>
-                            </div>
                         </div>
                     </div>
                     <div class="modal-body" id="share-tab-2">
@@ -231,6 +266,22 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="cant-upload-dialog" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title">Cannot upload here</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Sorry, big files can be only uploaded to the home directory, for now.</p>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-default" data-dismiss="modal">Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 {% block scripts %}
     <script>var path = "{{ path }}"; var acc = {{ num }}; var cloudclass = {{ cloudclass | safe }};</script>
@@ -240,11 +291,14 @@
     <link rel="stylesheet" href="{% static 'css/jquery.fileupload.css' %}">
     <link rel="stylesheet" href="{% static 'css/awesome-bootstrap-checkbox.css' %}">
     <link rel="stylesheet" href="{% static 'css/jquery-ui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/draggable-piechart.css' %}" type="text/css">
     <script src="{% static 'js/jquery-ui.min.js' %}"></script>
     <script src="{% static 'js/bootstrap-editable.min.js' %}"></script>
     <script src="{% static 'js/listr.pack.js' %}"></script>
     <script src="{% static 'js/moment-with-locales.js' %}"></script>
     <script src="{% static 'js/common.js' %}"></script>
+    <script src="{% static 'js/draggable-piechart.js' %}"></script>
+    <script src="{% static 'js/setup_piechart.js' %}"></script>
     <script src="{% static 'js/home.js' %}"></script>
     <script src="{% static 'js/clipboard.min.js' %}"></script>
     {% if tour %}

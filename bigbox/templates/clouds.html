@@ -16,6 +16,8 @@
             </div>
             {% for c in accounts %}
                 <div class="acloud" id="acloud-{{ c.pk }}" style="border-left-color: {{ c.color }}">
+                    <a href="#" class="cloud-remove-link" data-toggle="modal" data-target="#remove-cloud"
+                       data-pk="{{ c.pk }}" data-name="{{ c.display_name }}">&times;</a>
                     <div class="cloudcard-left">
                         <img class="cloudcard-logo" src="{% static 'img/' %}{{ c.cloud.icon }}"
                              alt="{{ c.cloud.display_name }}"/>
@@ -24,14 +26,16 @@
                         <p class="pull-left"><strong>
                             <a href="#" class="editable-text" data-type="text" data-pk="{{ c.pk }}" data-url="{% url 'cloud-rename' %}" data-title="Choose a nickname for this cloud">{{ c.display_name }}</a>
                         </strong></p>
-                        <a href="#" class="pull-right color-picker" data-pk="{{ c.pk }}">
-                            <i class="cloud-color-icon" style="background-color: {{ c.color }}"></i>
-                        </a>
+                        <div class="pull-right">
+                            <a href="#" class="color-picker" data-pk="{{ c.pk }}">
+                                <i class="cloud-color-icon" style="background-color: {{ c.color }}"></i>
+                            </a>
+                        </div>
                         <div class="clearfix"></div>
                         <p>Owner: {{ c.user_full_name }} <span class="text-muted">({{ c.email }})</span></p>
                         <div class="progress">
-                            <div class="progress-bar" style="width: {{ c.space.percent }}%;{% if c.space.percent > 50 %}color: white; text-shadow: 1px 1px black{% endif %}%">
-                                <span>{{ c.space.used|filesizeformat }}/{% if c.space.total %}{{ c.space.total|filesizeformat }}{% else %}--{% endif %}</span>
+                            <div class="progress-bar" style="width: 0" data-pk="{{ c.pk }}">
+                                <span>Loading ...</span>
                             </div>
                         </div>
                     </div>
@@ -57,6 +61,29 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="remove-cloud" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title">WARNING</h4>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Removing a cloud account won't have any impact on your normal files at all.<br>
+                        <strong class="text-danger">However, any big files uploaded by now will stop working</strong>,
+                        since they are split
+                        and stored on all your accounts.<br>
+                        Only proceed when all big files are backed up, if any.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="remove-cloud-button">Remove</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>

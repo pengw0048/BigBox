@@ -32,6 +32,9 @@ urlpatterns = [
     url(r'^clouds/?$', views.storage_accounts, name='clouds'),
     url(r'^clouds/add/(?P<cloud>\w+)/?$', views.add_storage_account, name='cloud-add'),
     url(r'^clouds/rename/?$', views.rename_storage_account, name='cloud-rename'),
+    url(r'^clouds/remove/?$', views.remove_storage_account, name='cloud-remove'),
     url(r'^clouds/color/?$', views.color_storage_account, name='cloud-color'),
+    url(r'^clouds/space/?$', views.get_space, name='cloud-space'),
     url(r'^favicon\.ico$', favicon_view),
+    url(r'^get-acc-info/?$', views.get_acc_info, name='acc-info'),
 ]

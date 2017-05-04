@@ -45,3 +45,6 @@ function split(val) {
 function extractLast(term) {
     return split(term).pop();
 }
+$(document).ready(function () {
+    $("[data-toggle=tooltip]").tooltip();
+});

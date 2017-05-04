@@ -31,6 +31,7 @@ h1 {
     border: 1px solid #ddd;
     border-left-width: 5px;
     border-radius: 3px;
+    position: relative;
 }
 .cloudcard-logo {
     width: 100px;
@@ -158,4 +159,11 @@ ul {
     position: absolute;
     cursor: default;
     z-index: 1100 !important
+}
+
+.cloud-remove-link {
+    position: absolute;
+    top: 3px;
+    right: 6px;
+    text-decoration: none !important;
 }
